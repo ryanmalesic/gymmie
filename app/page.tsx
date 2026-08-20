@@ -1,5 +1,5 @@
+import { HomeActions } from '@/components/home/home-actions';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -28,8 +28,7 @@ export default function Home(): React.ReactElement {
           </p>
         </CardContent>
         <CardFooter className="gap-2">
-          <Button>Get Started</Button>
-          <Button variant="outline">Learn More</Button>
+          <HomeActions />
         </CardFooter>
       </Card>
     </div>

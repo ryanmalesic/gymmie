@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gymmie
 
-## Getting Started
+Gymmie is a Next.js fitness companion. The current application provides a public landing page, Google and Apple sign-in through Better Auth, and a protected account page that lists the signed-in user's linked accounts.
 
-First, run the development server:
+## Getting started
+
+Install dependencies and start the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/` contains App Router pages and the Better Auth catch-all route.
+- `components/auth/` contains authentication and account interactions.
+- `components/home/` contains homepage-specific interactions.
+- `components/ui/` contains reusable UI primitives.
+- `lib/` contains Better Auth, Prisma, session, and shared utility modules.
+- `prisma/` contains the PostgreSQL schema and committed migrations.
 
-## Learn More
+## Authentication and database setup
 
-To learn more about Next.js, take a look at the following resources:
+Gymmie uses Better Auth with Prisma 7, a generated TypeScript Prisma Client, and PostgreSQL. The auth schema persists users, linked provider accounts, sessions, and verification records. Session cache data uses encrypted JWE cookies, while protected server pages verify the session with `auth.api.getSession`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Copy `.env.example` to `.env` and set `BETTER_AUTH_SECRET` to a high-entropy value of at least 32 characters.
+2. Set `BETTER_AUTH_URL` to the public application origin. The browser auth client uses the current origin, so this is the only auth-origin setting to maintain. Set `DATABASE_URL` to the PostgreSQL runtime URL. Set `DIRECT_URL` as well when Prisma migrations must bypass a pooler.
+3. Add Google OAuth credentials and register `${BETTER_AUTH_URL}/api/auth/callback/google` as the Google callback.
+4. Add Apple Service ID, Team ID, Key ID, and private key credentials. Apple requires an HTTPS callback URL and does not accept localhost/non-TLS callbacks.
+5. Generate the client and apply the committed PostgreSQL migration:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm prisma:generate
+pnpm prisma:migrate:deploy
+```
 
-## Deploy on Vercel
+The first migration creates `encode_base32_14(n)` and `generate_id(p_prefix)`. The database generates every current model ID as a prefixed, 14-character Crockford Base32 suffix. Better Auth's `advanced.database.generateId: false` and the Prisma create extension prevent application-side IDs from replacing those defaults.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The auth endpoints are mounted at `/api/auth/*`. `/sign-in` starts Google or Apple sign-in, and `/account` is server-protected. Use `pnpm prisma:studio` to inspect the database.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For local development only, use `pnpm prisma:migrate:dev --name auth-and-ids`. Do not run it against a production database.
+
+## Verification
+
+```bash
+pnpm lint
+pnpm test
+pnpm exec tsc --noEmit
+pnpm e2e
+```
