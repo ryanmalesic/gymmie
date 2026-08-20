@@ -37,7 +37,7 @@ pnpm prisma:generate
 pnpm prisma:migrate:deploy
 ```
 
-The first migration creates `encode_base32_14(n)` and `generate_id(p_prefix)`. The database generates every current model ID as a prefixed, 14-character Crockford Base32 suffix. Better Auth's `advanced.database.generateId: false` and the Prisma create extension prevent application-side IDs from replacing those defaults.
+The first migration creates `encode_base32_14(n)` and the parameterless `generate_id()`. The database infers each current model's prefix from its insert table name and generates a prefixed, 14-character Crockford Base32 suffix. Better Auth's `advanced.database.generateId: false` and the Prisma create extension prevent application-side IDs from replacing those defaults.
 
 The auth endpoints are mounted at `/api/auth/*`. `/sign-in` starts Google or Apple sign-in, and `/account` is server-protected. Use `pnpm prisma:studio` to inspect the database.
 

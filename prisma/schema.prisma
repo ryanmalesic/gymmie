@@ -10,9 +10,9 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(dbgenerated("generate_id('usr')")) @db.VarChar(32)
+  id            String    @id @default(dbgenerated("generate_id()")) @db.VarChar(32)
   name          String
-  email         String    @unique
+  email         String    @unique(map: "user_email_uidx")
   emailVerified Boolean   @default(false)
   image         String?
   createdAt     DateTime  @default(now())
@@ -24,9 +24,9 @@ model User {
 }
 
 model Session {
-  id        String   @id @default(dbgenerated("generate_id('ssn')")) @db.VarChar(32)
+  id        String   @id @default(dbgenerated("generate_id()")) @db.VarChar(32)
   expiresAt DateTime
-  token     String   @unique
+  token     String   @unique(map: "session_token_uidx")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -38,7 +38,7 @@ model Session {
 }
 
 model Account {
-  id                    String    @id @default(dbgenerated("generate_id('acct')")) @db.VarChar(32)
+  id                    String    @id @default(dbgenerated("generate_id()")) @db.VarChar(32)
   accountId             String
   providerId            String
   userId                String    @db.VarChar(32)
@@ -53,12 +53,12 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  @@unique([providerId, accountId])
+  @@unique([providerId, accountId], map: "account_providerId_accountId_uidx")
   @@map("account")
 }
 
 model Verification {
-  id         String    @id @default(dbgenerated("generate_id('vrf')")) @db.VarChar(32)
+  id         String    @id @default(dbgenerated("generate_id()")) @db.VarChar(32)
   identifier String
   value      String
   expiresAt  DateTime
