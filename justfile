@@ -87,6 +87,11 @@ test-integration-local: test-db-start
 e2e *args:
     pnpm e2e {{args}}
 
+# run e2e tests with local test database
+e2e-local *args: test-db-start
+    DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gymmie_test pnpm exec prisma migrate deploy
+    DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gymmie_test pnpm e2e {{args}}
+
 # run the full verification suite (format, lint, typecheck, test)
 verify:
     just format-all
