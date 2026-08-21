@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "chore",
   "description": "Replace broken podman-based test database with embedded-postgres for integration and E2E tests. Update scripts, justfile, and steering docs.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Install embedded-postgres as devDependency and approve build scripts",
     "Create scripts/test-db.ts shared module exporting startTestDatabase/stopTestDatabase helpers",
@@ -31,5 +31,5 @@
     "source /root/.nvm/nvm.sh && nvm use 22 >/dev/null && cd /projects/sandbox/gymmie && corepack pnpm test:integration"
   ],
   "blocked_reason": null,
-  "findings": null
+  "findings": "embedded-postgres works in the kiro web sandbox by using unix_socket_directories to avoid /tmp permission issues. The postgres user (uid 26) cannot write to /tmp in the bwrap sandbox even with 1777 permissions, so we redirect the unix socket to a project-local directory (.tmp/pg-socket-*). Integration tests use port 5555, e2e tests use port 5556. The /tmp sticky bit must be set (chmod 1777 /tmp) but this alone is not sufficient for postgres; the postgresFlags approach is required. All 15 integration tests and 30 unit tests pass. Build succeeds."
 }
