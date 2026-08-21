@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-001",
+  "type": "test",
+  "description": "Integration tests for server actions (action boundary to DB to response). Also add Docker Compose file and Podman fallback script for test database orchestration.",
+  "status": "in_progress",
+  "steps": [
+    "Create compose.test.yml with a Citus 18 (citusdata/citus:18.0) PostgreSQL service. Port 5433 host -> 5432 container. Env: POSTGRES_USER=postgres, POSTGRES_PASSWORD=postgres, POSTGRES_DB=gymmie_test. Include a healthcheck. This file is for environments where docker compose is available.",
+    "Create scripts/start-test-db.sh - a shell script that: (1) tries docker compose -f compose.test.yml up -d, (2) if that fails, falls back to podman run --network host with postgres:16-alpine (port 5432, since --network host). Wait for pg_isready. Make it executable.",
+    "Create app/actions/members.integration.test.ts (matching vitest.integration.config.mts include: server/**/*.integration.test.ts is the current pattern, but the test file should go in a location picked up by the integration config - alternatively update vitest.integration.config.mts to also include app/actions/**/*.integration.test.ts). The test file should: (a) import the real action functions from @/app/actions/members, (b) vi.mock('@/lib/session') to control getServerSession return value, (c) vi.mock('next/cache') to stub revalidatePath, (d) connect a real PrismaClient to TEST_DATABASE_URL, (e) use beforeAll to run prisma migrate deploy programmatically or rely on the test-integration.mjs script having done it.",
+    "Write test cases in the integration test: 1) getMembersAction returns empty array initially. 2) createMemberAction with valid input returns serialized Member with DB-generated id, createdAt, updatedAt. 3) createMemberAction with invalid input (missing name) throws MemberError with code 'invalid'. 4) createMemberAction with duplicate email throws MemberError with code 'conflict'. 5) updateMemberAction updates name/email and returns updated member. 6) deleteMemberAction removes the member. 7) deleteMemberAction with non-existent id throws MemberError with code 'not_found'. 8) All actions throw MemberError 'unauthorized' when getServerSession returns null. 9) deleteMemberAction throws MemberError 'invalid' when trying to delete own user id (self-delete prevention).",
+    "Update vitest.integration.config.mts include pattern to also include app/actions/**/*.integration.test.ts if needed.",
+    "Ensure cleanup after each test (deleteMany test users by email pattern). Use afterEach/afterAll for cleanup and disconnection.",
+    "Run the integration tests against a real PostgreSQL (start podman container with --network host on port 5432, run prisma migrate deploy, then run vitest with TEST_DATABASE_URL) to verify all pass."
+  ],
+  "acceptance_criteria": [
+    "compose.test.yml exists with Citus 18 service configuration",
+    "scripts/start-test-db.sh exists and is executable, with both docker compose and podman fallback",
+    "Integration test file exists and covers: auth check, create (valid + invalid + duplicate), list, update, delete (valid + not_found + self-delete prevention)",
+    "Running TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gymmie_test pnpm test:integration passes all tests",
+    "Tests actually hit the real database through the full action -> service -> repository -> DB path",
+    "Mocks are limited to @/lib/session (getServerSession) and next/cache (revalidatePath)"
+  ],
+  "verification": [
+    "Start postgres container: podman run -d --rm --name gymmie-test-db --network host -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=gymmie_test postgres:16-alpine",
+    "Wait for DB ready: until podman exec gymmie-test-db pg_isready; do sleep 1; done",
+    "Run: source /root/.nvm/nvm.sh && nvm use 22 >/dev/null && cd /projects/sandbox/gymmie && TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gymmie_test corepack pnpm test:integration",
+    "Run: source /root/.nvm/nvm.sh && nvm use 22 >/dev/null && cd /projects/sandbox/gymmie && corepack pnpm exec tsc --noEmit"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
