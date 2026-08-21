@@ -11,31 +11,66 @@
 
 Podman 5.2.3 is installed and aliased as `docker`, but networking between host and containers is **broken** in this sandbox:
 
-- `podman run -d` starts containers that show as "running" in `podman inspect`
-- `podman logs` returns empty output for detached containers
-- `podman exec` fails with "container is not running" even when inspect says otherwise
-- `--network host` does not share the network namespace (127.0.0.1 is unreachable)
-- Default bridge network assigns IPs (10.88.0.x) but ARP resolution fails
+- Containers start but host cannot connect to them (127.0.0.1 unreachable)
+- `--network host` does not share the network namespace
+- Bridge network IPs (10.88.0.x) have broken ARP resolution
 - Port-mapped containers (`-p 5432:5432`) result in "No route to host"
-- Foreground containers (`podman run` without `-d`) DO execute and produce logs, but cannot provide network services since the host cannot connect to them
 
-**Bottom line**: You cannot run database containers (PostgreSQL, etc.) in this sandbox and connect to them. Integration tests requiring a real database must be run in CI or locally.
+**Bottom line**: You cannot run database containers and connect to them in this sandbox.
 
-## What Works
+## Working Solution: embedded-postgres
 
-- `podman pull` (image downloading works)
-- `podman run` in foreground (process executes, shows output)
-- `podman build` (Dockerfile builds work)
-- All non-container commands (node, pnpm, git, mise, just)
+The `embedded-postgres` npm package spawns a real PostgreSQL binary as a child process directly from Node.js. This bypasses container networking entirely.
+
+- Package: `embedded-postgres` (devDependency)
+- Requires `createPostgresUser: true` since we run as root
+- Uses port 5555 (integration tests) and 5556 (e2e tests)
+- Data stored in `.tmp/` (gitignored, non-persistent)
+- The scripts automatically start/stop the database
+
+## Running Commands
+
+Always prefix node/pnpm commands with:
+
+```bash
+source /root/.nvm/nvm.sh && nvm use 22 >/dev/null
+```
+
+All project commands are wrapped in `just` recipes (see `justfile`). Use `just --list` to see available recipes.
+
+Key recipes:
+
+- `just setup` - install deps + generate prisma client
+- `just build` - build the project
+- `just lint` - run eslint
+- `just typecheck` - run tsc --noEmit
+- `just test` - run unit tests
+- `just test-integration` - run integration tests (uses embedded-postgres, no external DB needed)
+- `just e2e-chromium` - run e2e tests with chromium (uses embedded-postgres)
+- `just verify` - full pre-commit check (format, lint, typecheck, unit test)
+- `just verify-all` - verify + integration tests
 
 ## Running Tests
 
-- **Unit tests**: `just test` (no database needed)
-- **Integration tests**: require `TEST_DATABASE_URL` pointing to a real PostgreSQL instance. Use CI or a local machine.
-- **E2E tests**: require both `DATABASE_URL` and a running Next.js server. Use CI or local.
+- **Unit tests**: `just test` or `corepack pnpm test:unit -- --run` (no database needed)
+- **Integration tests**: `just test-integration` or `corepack pnpm test:integration` (embedded-postgres starts automatically)
+- **Integration with external DB**: `just test-integration-external postgresql://user:pass@host:port/db`
+- **E2E tests**: `just e2e-chromium` or `corepack pnpm exec playwright test --project=chromium` (embedded-postgres starts in global-setup)
+- **Full verification**: `just verify` (format, lint, typecheck, unit tests)
+
+## Git Commits in This Sandbox
+
+The mise pnpm shim has a broken `libatomic.so.1` dependency. When committing, remove mise shims from PATH:
+
+```bash
+source /root/.nvm/nvm.sh && nvm use 22 >/dev/null
+PATH=$(echo "$PATH" | tr ':' '\n' | grep -v mise | tr '\n' ':') git commit -m "your message"
+```
+
+This ensures husky pre-commit hooks use nvm's pnpm (via corepack) instead of the broken mise shim.
 
 ## Network Access
 
 - External HTTPS works (package registries, GitHub, etc.)
-- Localhost/loopback (127.0.0.1) only works for processes started directly on the host (not in containers)
-- Container bridge IPs (10.88.0.x) are unreachable from the host due to broken ARP in the bwrap sandbox
+- Localhost/loopback (127.0.0.1) works for processes started directly on the host (including embedded-postgres)
+- Container networking is broken (see Container Limitations above)

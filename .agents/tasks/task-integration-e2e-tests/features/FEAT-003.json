@@ -1,0 +1,35 @@
+{
+  "id": "FEAT-003",
+  "type": "chore",
+  "description": "Replace broken podman-based test database with embedded-postgres for integration and E2E tests. Update scripts, justfile, and steering docs.",
+  "status": "in_progress",
+  "steps": [
+    "Install embedded-postgres as devDependency and approve build scripts",
+    "Create scripts/test-db.ts shared module exporting startTestDatabase/stopTestDatabase helpers",
+    "Rewrite scripts/test-integration.mjs to use embedded-postgres (auto-manage DB) or honor TEST_DATABASE_URL if provided",
+    "Rewrite e2e/global-setup.ts to start embedded-postgres, run migrations, seed auth",
+    "Rewrite e2e/global-teardown.ts to cleanup and stop embedded-postgres",
+    "Update playwright.config.ts webServer env to use embedded-postgres URL",
+    "Update justfile recipes for test-integration-local and e2e-local to work without containers",
+    "Update scripts/start-test-db.sh to document embedded-postgres as primary method",
+    "Update .kiro/steering/sandbox-environment.md with working instructions",
+    "Verify: format, lint, typecheck, unit tests, integration tests, build"
+  ],
+  "acceptance_criteria": [
+    "corepack pnpm test:integration runs successfully without external database",
+    "Integration tests hit a real embedded PostgreSQL through the full action->service->repository->DB path",
+    "E2E global setup starts embedded-postgres and seeds auth data",
+    "justfile recipes work without manual container setup",
+    "All existing unit tests still pass",
+    "Typecheck and lint pass"
+  ],
+  "verification": [
+    "source /root/.nvm/nvm.sh && nvm use 22 >/dev/null && cd /projects/sandbox/gymmie && corepack pnpm exec prettier --write .",
+    "source /root/.nvm/nvm.sh && nvm use 22 >/dev/null && cd /projects/sandbox/gymmie && corepack pnpm lint",
+    "source /root/.nvm/nvm.sh && nvm use 22 >/dev/null && cd /projects/sandbox/gymmie && corepack pnpm exec tsc --noEmit",
+    "source /root/.nvm/nvm.sh && nvm use 22 >/dev/null && cd /projects/sandbox/gymmie && corepack pnpm test:unit -- --run",
+    "source /root/.nvm/nvm.sh && nvm use 22 >/dev/null && cd /projects/sandbox/gymmie && corepack pnpm test:integration"
+  ],
+  "blocked_reason": null,
+  "findings": null
+}

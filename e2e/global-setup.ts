@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,11 +12,63 @@ const TEST_SESSION_TOKEN = 'e2e-test-session-token-playwright';
 
 const BETTER_AUTH_SECRET =
   process.env.BETTER_AUTH_SECRET ?? 'playwright-test-secret-with-at-least-32-characters';
-const DATABASE_URL =
-  process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/gymmie_test';
+
+const E2E_PORT = 5556;
 
 export default async function globalSetup(): Promise<void> {
-  const pool = new pg.Pool({ connectionString: DATABASE_URL });
+  let databaseUrl = process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
+    // start embedded-postgres for e2e tests
+    const { default: EmbeddedPostgres } = await import('embedded-postgres');
+
+    const databaseDir = path.join(process.cwd(), '.tmp', 'test-db-e2e');
+    const socketDir = path.join(process.cwd(), '.tmp', 'pg-socket-e2e');
+
+    // clean up from previous runs
+    fs.rmSync(databaseDir, { force: true, recursive: true });
+    fs.rmSync(socketDir, { force: true, recursive: true });
+
+    const epg = new EmbeddedPostgres({
+      createPostgresUser: true,
+      databaseDir,
+      password: 'postgres',
+      persistent: false,
+      port: E2E_PORT,
+      postgresFlags: ['-c', `unix_socket_directories=${socketDir}`],
+      user: 'postgres',
+    });
+
+    await epg.initialise();
+
+    // create socket dir after initialise (postgres user now exists)
+    fs.mkdirSync(socketDir, { recursive: true });
+    execFileSync('chown', ['postgres:postgres', socketDir]);
+    execFileSync('chmod', ['1777', socketDir]);
+
+    await epg.start();
+    await epg.createDatabase('gymmie_test');
+
+    databaseUrl = `postgresql://postgres:postgres@localhost:${E2E_PORT}/gymmie_test`;
+
+    // store for teardown
+    (globalThis as Record<string, unknown>).__embeddedPgInstance = epg;
+    (globalThis as Record<string, unknown>).__e2eDatabaseUrl = databaseUrl;
+
+    // run migrations
+    const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+    execFileSync(command, ['exec', 'prisma', 'migrate', 'deploy'], {
+      env: { ...process.env, DATABASE_URL: databaseUrl, DIRECT_URL: databaseUrl },
+      stdio: 'inherit',
+    });
+
+    // set DATABASE_URL for the webServer process
+    process.env.DATABASE_URL = databaseUrl;
+    process.env.DIRECT_URL = databaseUrl;
+  }
+
+  // seed test user and session
+  const pool = new pg.Pool({ connectionString: databaseUrl });
 
   try {
     const now = new Date().toISOString();

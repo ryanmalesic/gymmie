@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# primary method: embedded-postgres (used by test-integration.mjs and e2e/global-setup.ts)
+# this script is a fallback for environments with docker compose or podman available.
+# in the kiro web sandbox, use `just test-integration` which uses embedded-postgres automatically.
+
 CONTAINER_NAME="gymmie-test-db"
 DB_USER="postgres"
 DB_PASSWORD="postgres"
@@ -35,7 +39,7 @@ wait_for_ready() {
 
 cleanup_existing
 
-# Try docker compose first (works in environments with full Docker)
+# try docker compose first (works in environments with full Docker)
 if docker compose version >/dev/null 2>&1; then
   echo "Starting test database with docker compose..."
   if docker compose -f compose.test.yml up -d --wait 2>/dev/null; then
@@ -46,7 +50,7 @@ if docker compose version >/dev/null 2>&1; then
   echo "docker compose failed, falling back to podman..."
 fi
 
-# Fallback: podman run with --network host (port 5432)
+# fallback: podman run with --network host (port 5432)
 echo "Starting test database with podman (--network host)..."
 podman run -d --rm \
   --name "$CONTAINER_NAME" \

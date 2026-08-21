@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const DATABASE_URL =
-  process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/gymmie_test';
+  process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5556/gymmie_test';
 
 export default defineConfig({
   forbidOnly: !!process.env.CI,
@@ -35,6 +35,7 @@ export default defineConfig({
       BETTER_AUTH_SECRET:
         process.env.BETTER_AUTH_SECRET ?? 'playwright-test-secret-with-at-least-32-characters',
       DATABASE_URL,
+      DIRECT_URL: DATABASE_URL,
     },
     reuseExistingServer: !process.env.CI,
     url: 'http://localhost:3000',

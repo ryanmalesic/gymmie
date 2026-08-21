@@ -67,37 +67,41 @@ test-watch:
 test-coverage:
     pnpm test:coverage
 
-# start the test database (tries docker compose, falls back to podman)
+# start the test database via docker/podman (fallback for CI or local Docker)
 test-db-start:
     ./scripts/start-test-db.sh
 
-# stop the test database
+# stop the test database container
 test-db-stop:
     podman rm -f gymmie-test-db 2>/dev/null || docker compose -f compose.test.yml down 2>/dev/null || true
 
-# run integration tests (requires TEST_DATABASE_URL)
+# run integration tests with embedded-postgres (no external DB needed)
 test-integration:
     pnpm test:integration
 
-# run integration tests with local test database
-test-integration-local: test-db-start
-    TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gymmie_test pnpm test:integration
+# run integration tests with an external database (provide TEST_DATABASE_URL)
+test-integration-external url:
+    TEST_DATABASE_URL={{url}} pnpm test:integration
 
-# run playwright e2e tests
+# run playwright e2e tests with embedded-postgres (no external DB needed)
 e2e *args:
     pnpm e2e {{args}}
 
-# run e2e tests with local test database
-e2e-local *args: test-db-start
-    DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gymmie_test pnpm exec prisma migrate deploy
-    DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gymmie_test pnpm e2e {{args}}
+# run e2e tests against a specific project (default: chromium)
+e2e-chromium:
+    pnpm exec playwright test --project=chromium
 
-# run the full verification suite (format, lint, typecheck, test)
+# run the full verification suite (format, lint, typecheck, unit tests)
 verify:
     just format-all
     just lint
     just typecheck
     just test
+
+# run all tests including integration (uses embedded-postgres)
+verify-all:
+    just verify
+    just test-integration
 
 # setup project from scratch
 setup:
