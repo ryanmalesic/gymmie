@@ -133,6 +133,7 @@ export default async function globalSetup(): Promise<void> {
 }
 
 function signCookie(value: string, secret: string): string {
-  const signature = crypto.createHmac('sha256', secret).update(value).digest('base64url');
+  // better-auth uses WebCrypto HMAC-SHA256 + btoa (standard base64, NOT base64url)
+  const signature = crypto.createHmac('sha256', secret).update(value).digest('base64');
   return `${value}.${signature}`;
 }

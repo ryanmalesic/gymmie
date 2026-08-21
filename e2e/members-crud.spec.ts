@@ -44,13 +44,16 @@ test.describe.serial('authenticated member crud', () => {
     const row = page.getByRole('row').filter({ hasText: memberName });
     await row.getByRole('button', { name: 'Edit' }).click();
 
-    // change the name
+    // change the name — use the aria-label which remains stable during editing
     const nameInput = page.getByLabel(`Edit ${memberName} name`);
     await nameInput.clear();
     await nameInput.fill(updatedName);
 
-    // save
-    await row.getByRole('button', { name: 'Save' }).click();
+    // save — locate the row by its name input's aria-label (stable)
+    const editingRow = page
+      .getByRole('row')
+      .filter({ has: page.getByLabel(`Edit ${memberName} name`) });
+    await editingRow.getByRole('button', { name: 'Save' }).click();
 
     // verify the updated name appears
     await expect(page.getByText(updatedName)).toBeVisible();
