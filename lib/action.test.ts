@@ -12,7 +12,7 @@ function knownRequestError(code: string) {
 
 test("maps a known Prisma code to the matching field error", () => {
   expect(
-    fromPrismaError(
+    fromPrismaError<{ email: string }>(
       knownRequestError("P2002"),
       { form: ["Unable to create user"] },
       { P2002: { email: ["Email is already taken"] } },

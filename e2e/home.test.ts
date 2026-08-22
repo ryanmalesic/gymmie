@@ -10,7 +10,9 @@ test("adding users shows each of them on the page", async ({ page }) => {
   await page.getByLabel("Email").fill(adaEmail);
   await page.getByRole("button", { name: "Add user" }).click();
 
-  await expect(page.getByText(`Ada Lovelace (${adaEmail})`)).toBeVisible();
+  await expect(
+    page.getByRole("row", { name: `Ada Lovelace ${adaEmail}` }),
+  ).toBeVisible();
   await expect(page.getByLabel("Name")).toHaveValue("");
   await expect(page.getByLabel("Email")).toHaveValue("");
 
@@ -18,6 +20,8 @@ test("adding users shows each of them on the page", async ({ page }) => {
   await page.getByLabel("Email").fill(alEmail);
   await page.getByRole("button", { name: "Add user" }).click();
 
-  await expect(page.getByText(`Al (${alEmail})`)).toBeVisible();
-  await expect(page.getByText(`Ada Lovelace (${adaEmail})`)).toBeVisible();
+  await expect(page.getByRole("row", { name: `Al ${alEmail}` })).toBeVisible();
+  await expect(
+    page.getByRole("row", { name: `Ada Lovelace ${adaEmail}` }),
+  ).toBeVisible();
 });

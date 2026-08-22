@@ -4,13 +4,12 @@ import { expect, test, vi } from "vitest";
 import RootLayout from "@/app/layout";
 
 vi.mock("next/font/google", () => ({
-  Geist: () => ({ variable: "--font-geist-sans" }),
-  Geist_Mono: () => ({ variable: "--font-geist-mono" }),
+  Inter: () => ({ variable: "--font-inter" }),
 }));
 
 test("renders children in an English-language document", () => {
   render(
-    <RootLayout>
+    <RootLayout params={Promise.resolve({})}>
       <p>Hello</p>
     </RootLayout>,
   );

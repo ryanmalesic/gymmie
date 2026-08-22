@@ -2,6 +2,15 @@
 
 import { useActionState } from "react";
 
+import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { type ActionError, type ActionResult } from "@/lib/action";
 import { type UserType } from "@/lib/prisma/generated/zod/schemas";
 import { type UserInput } from "@/lib/users/schema";
@@ -27,7 +36,7 @@ export function UserForm({
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-3"
+      className="flex flex-col gap-4"
       key={
         state.ok
           ? state.data.id
@@ -37,56 +46,43 @@ export function UserForm({
       }
       noValidate
     >
-      <div className="flex flex-col gap-1">
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          Name
-          <input
+      <FieldGroup>
+        <Field data-invalid={error.name?.length ? true : undefined}>
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input
             aria-describedby={error.name ? "name-error" : undefined}
-            aria-invalid={Boolean(error.name)}
-            className="rounded-md border border-black/10 bg-transparent px-3 py-2 text-base font-normal dark:border-white/15"
+            aria-invalid={Boolean(error.name?.length)}
             defaultValue={values?.name}
+            id="name"
             name="name"
             required
             type="text"
           />
-        </label>
-        <FieldError id="name-error" messages={error.name} />
-      </div>
-      <div className="flex flex-col gap-1">
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          Email
-          <input
+          <FieldError errors={toFieldErrors(error.name)} id="name-error" />
+        </Field>
+        <Field data-invalid={error.email?.length ? true : undefined}>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
             aria-describedby={error.email ? "email-error" : undefined}
-            aria-invalid={Boolean(error.email)}
-            className="rounded-md border border-black/10 bg-transparent px-3 py-2 text-base font-normal dark:border-white/15"
+            aria-invalid={Boolean(error.email?.length)}
             defaultValue={values?.email}
+            id="email"
             name="email"
             required
             type="email"
           />
-        </label>
-        <FieldError id="email-error" messages={error.email} />
-      </div>
-      <FieldError id="form-error" messages={error.form} />
-      <button
-        className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background"
-        disabled={isPending}
-        type="submit"
-      >
+          <FieldError errors={toFieldErrors(error.email)} id="email-error" />
+        </Field>
+      </FieldGroup>
+      <FieldError errors={toFieldErrors(error.form)} id="form-error" />
+      <Button disabled={isPending} type="submit">
+        {isPending ? <Spinner data-icon="inline-start" /> : null}
         Add user
-      </button>
+      </Button>
     </form>
   );
 }
 
-function FieldError({ id, messages }: { id: string; messages?: string[] }) {
-  if (!messages?.length) {
-    return null;
-  }
-
-  return (
-    <p id={id} role="alert">
-      {messages.join(" ")}
-    </p>
-  );
+function toFieldErrors(messages?: string[]) {
+  return messages?.map((message) => ({ message }));
 }
