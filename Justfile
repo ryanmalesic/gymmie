@@ -1,5 +1,8 @@
 # Run `just` to list recipes.
 
+export DATABASE_URL := env_var_or_default("DATABASE_URL", "postgres://postgres:postgres@localhost:51214/template1?sslmode=disable")
+export SHADOW_DATABASE_URL := env_var_or_default("SHADOW_DATABASE_URL", "postgres://postgres:postgres@localhost:51215/template1?sslmode=disable")
+
 default:
     @just --list
 
@@ -7,9 +10,9 @@ default:
 install:
     pnpm install
 
-# Start the Next.js dev server
+# Start local Postgres (if needed) and the Next.js dev server
 dev:
-    pnpm dev
+    bash scripts/dev.sh
 
 # Production build
 build:
@@ -31,17 +34,25 @@ format:
 check:
     pnpm check
 
-# Run unit tests once
+# Run unit and integration tests
 test:
-    pnpm test
+    bash scripts/test.sh
+
+# Run unit tests only
+test-unit:
+    pnpm exec vitest run --project unit
 
 # Run unit tests in watch mode
 test-watch:
     pnpm test:watch
 
+# Run integration tests against the test database
+test-integration:
+    bash scripts/test.sh --project integration
+
 # Run Playwright e2e tests
 e2e:
-    pnpm e2e
+    bash scripts/e2e.sh
 
 # Install Playwright browsers into playwright-core/.local-browsers
 e2e-install:
@@ -49,4 +60,4 @@ e2e-install:
 
 # Open the Playwright UI
 e2e-ui:
-    pnpm e2e:ui
+    bash scripts/e2e.sh --ui

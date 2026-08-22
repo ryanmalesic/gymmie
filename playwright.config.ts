@@ -1,5 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not set");
+}
+
 const config = defineConfig({
   forbidOnly: Boolean(process.env.CI),
   fullyParallel: true,
@@ -9,7 +14,7 @@ const config = defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  reporter: "html",
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
   retries: process.env.CI ? 2 : 0,
   testDir: "./e2e",
   testMatch: "**/*.test.ts",
@@ -19,6 +24,9 @@ const config = defineConfig({
   },
   webServer: {
     command: "pnpm dev",
+    env: {
+      DATABASE_URL: databaseUrl,
+    },
     reuseExistingServer: !process.env.CI,
     url: "http://localhost:3000",
   },
