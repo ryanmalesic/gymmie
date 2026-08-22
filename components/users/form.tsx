@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { lazy, Suspense } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,78 +12,130 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { type ActionError, type ActionResult } from "@/lib/action";
-import { type UserType } from "@/lib/prisma/generated/zod/schemas";
-import { type UserInput } from "@/lib/users/schema";
+import { type ActionResult } from "@/lib/action";
+import {
+  type CreateUserMutationError,
+  useCreateUserMutation,
+} from "@/lib/users/mutations";
+import { type ListedUser } from "@/lib/users/queries";
+import { type UserInput, userInputSchema } from "@/lib/users/schema";
 
-type ListedUser = Pick<UserType, "email" | "id" | "name">;
+const FormDevtools = lazy(() =>
+  import("@tanstack/react-devtools").then((m) => ({
+    default: m.TanStackDevtools,
+  })),
+);
 
 export function UserForm({
   action,
 }: {
-  action: (
-    state: ActionResult<ListedUser, UserInput>,
-    formData: FormData,
-  ) => Promise<ActionResult<ListedUser, UserInput>>;
+  action: (input: UserInput) => Promise<ActionResult<ListedUser, UserInput>>;
 }) {
-  const [state, formAction, isPending] = useActionState(action, {
-    error: {},
-    ok: false,
+  const mutation = useCreateUserMutation(action);
+
+  const form = useForm({
+    defaultValues: { email: "", name: "" },
+    onSubmit: async ({ createValidationError, value }) => {
+      try {
+        await mutation.mutateAsync(value);
+        form.reset();
+      } catch (thrown: unknown) {
+        const failure = thrown as CreateUserMutationError;
+        return createValidationError({
+          fields: {
+            email: failure.error.email?.join(", "),
+            name: failure.error.name?.join(", "),
+          },
+          form: failure.error.form?.join(", "),
+        });
+      }
+    },
+    validators: [
+      {
+        run: userInputSchema,
+        triggerDebounceMs: 300,
+        triggers: ["change", "blur"] as const,
+      },
+    ],
   });
 
-  const error: ActionError<UserInput> = state.ok ? {} : state.error;
-  const values = state.ok ? undefined : state.values;
-
   return (
-    <form
-      action={formAction}
-      className="flex flex-col gap-4"
-      key={
-        state.ok
-          ? state.data.id
-          : values
-            ? `${values.email}:${values.name}`
-            : "idle"
-      }
-      noValidate
-    >
-      <FieldGroup>
-        <Field data-invalid={error.name?.length ? true : undefined}>
-          <FieldLabel htmlFor="name">Name</FieldLabel>
-          <Input
-            aria-describedby={error.name ? "name-error" : undefined}
-            aria-invalid={Boolean(error.name?.length)}
-            defaultValue={values?.name}
-            id="name"
-            name="name"
-            required
-            type="text"
-          />
-          <FieldError errors={toFieldErrors(error.name)} id="name-error" />
-        </Field>
-        <Field data-invalid={error.email?.length ? true : undefined}>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input
-            aria-describedby={error.email ? "email-error" : undefined}
-            aria-invalid={Boolean(error.email?.length)}
-            defaultValue={values?.email}
-            id="email"
-            name="email"
-            required
-            type="email"
-          />
-          <FieldError errors={toFieldErrors(error.email)} id="email-error" />
-        </Field>
-      </FieldGroup>
-      <FieldError errors={toFieldErrors(error.form)} id="form-error" />
-      <Button disabled={isPending} type="submit">
-        {isPending ? <Spinner data-icon="inline-start" /> : null}
-        Add user
-      </Button>
-    </form>
+    <>
+      <form
+        className="flex flex-col gap-4"
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+      >
+        <FieldGroup>
+          <form.Field name="name">
+            {(field) => (
+              <Field data-invalid={field.meta.isInvalid || undefined}>
+                <FieldLabel htmlFor="name">Name</FieldLabel>
+                <Input
+                  aria-describedby={
+                    field.meta.isInvalid ? "name-error" : undefined
+                  }
+                  aria-invalid={field.meta.isInvalid}
+                  id="name"
+                  name="name"
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  required
+                  type="text"
+                  value={field.value}
+                />
+                <FieldError
+                  errors={field.errors.map((e) => ({ message: e.message }))}
+                  id="name-error"
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="email">
+            {(field) => (
+              <Field data-invalid={field.meta.isInvalid || undefined}>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  aria-describedby={
+                    field.meta.isInvalid ? "email-error" : undefined
+                  }
+                  aria-invalid={field.meta.isInvalid}
+                  id="email"
+                  name="email"
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  required
+                  type="email"
+                  value={field.value}
+                />
+                <FieldError
+                  errors={field.errors.map((e) => ({ message: e.message }))}
+                  id="email-error"
+                />
+              </Field>
+            )}
+          </form.Field>
+        </FieldGroup>
+        <form.Subscribe
+          selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+        >
+          {([canSubmit, isSubmitting]) => (
+            <Button disabled={!canSubmit || isSubmitting} type="submit">
+              {isSubmitting ? <Spinner data-icon="inline-start" /> : null}
+              Add user
+            </Button>
+          )}
+        </form.Subscribe>
+      </form>
+      {process.env.NODE_ENV === "development" && (
+        <Suspense>
+          <FormDevtools config={{ hideUntilHover: true }} plugins={[]} />
+        </Suspense>
+      )}
+    </>
   );
-}
-
-function toFieldErrors(messages?: string[]) {
-  return messages?.map((message) => ({ message }));
 }

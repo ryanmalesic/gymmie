@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 
-import { createUserAction, listUsersAction } from "@/app/users/actions";
+import { addUser, fetchUsers } from "@/app/users/actions";
 import { Prisma } from "@/lib/prisma/generated/client";
 import { createUser, listUsers } from "@/lib/users/repository";
 
@@ -13,20 +13,11 @@ vi.mock("@/lib/users/repository", () => ({
   listUsers: vi.fn(),
 }));
 
-const idleState = { error: {}, ok: false } as const;
-
-function userForm(name: string, email: string) {
-  const formData = new FormData();
-  formData.set("name", name);
-  formData.set("email", email);
-  return formData;
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-test("listUsersAction maps a known Prisma error to a form failure", async () => {
+test("fetchUsers maps a known Prisma error to a form failure", async () => {
   vi.mocked(listUsers).mockRejectedValue(
     new Prisma.PrismaClientKnownRequestError("unavailable", {
       clientVersion: "test",
@@ -34,20 +25,20 @@ test("listUsersAction maps a known Prisma error to a form failure", async () => 
     }),
   );
 
-  await expect(listUsersAction()).resolves.toEqual({
+  await expect(fetchUsers()).resolves.toEqual({
     error: { form: ["Unable to load users"] },
     ok: false,
   });
 });
 
-test("listUsersAction rethrows unexpected errors", async () => {
+test("fetchUsers rethrows unexpected errors", async () => {
   const error = new Error("connection refused");
   vi.mocked(listUsers).mockRejectedValue(error);
 
-  await expect(listUsersAction()).rejects.toThrow(error);
+  await expect(fetchUsers()).rejects.toThrow(error);
 });
 
-test("createUserAction maps a unique-constraint error to the email field", async () => {
+test("addUser maps a unique-constraint error to the email field", async () => {
   vi.mocked(createUser).mockRejectedValue(
     new Prisma.PrismaClientKnownRequestError("unique", {
       clientVersion: "test",
@@ -56,7 +47,7 @@ test("createUserAction maps a unique-constraint error to the email field", async
   );
 
   await expect(
-    createUserAction(idleState, userForm("Ada", "ada@example.com")),
+    addUser({ email: "ada@example.com", name: "Ada" }),
   ).resolves.toEqual({
     error: { email: ["Email is already taken"] },
     ok: false,
@@ -64,7 +55,7 @@ test("createUserAction maps a unique-constraint error to the email field", async
   });
 });
 
-test("createUserAction maps an unmapped Prisma error to a form failure", async () => {
+test("addUser maps an unmapped Prisma error to a form failure", async () => {
   vi.mocked(createUser).mockRejectedValue(
     new Prisma.PrismaClientKnownRequestError("unavailable", {
       clientVersion: "test",
@@ -73,7 +64,7 @@ test("createUserAction maps an unmapped Prisma error to a form failure", async (
   );
 
   await expect(
-    createUserAction(idleState, userForm("Ada", "ada@example.com")),
+    addUser({ email: "ada@example.com", name: "Ada" }),
   ).resolves.toEqual({
     error: { form: ["Unable to create user"] },
     ok: false,
@@ -81,11 +72,11 @@ test("createUserAction maps an unmapped Prisma error to a form failure", async (
   });
 });
 
-test("createUserAction rethrows unexpected errors", async () => {
+test("addUser rethrows unexpected errors", async () => {
   const error = new Error("connection refused");
   vi.mocked(createUser).mockRejectedValue(error);
 
   await expect(
-    createUserAction(idleState, userForm("Ada", "ada@example.com")),
+    addUser({ email: "ada@example.com", name: "Ada" }),
   ).rejects.toThrow(error);
 });

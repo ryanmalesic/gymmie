@@ -1,29 +1,20 @@
 import { beforeEach, expect, test, vi } from "vitest";
 
-import { createUserAction, listUsersAction } from "@/app/users/actions";
+import { addUser, fetchUsers } from "@/app/users/actions";
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-const idleState = { error: {}, ok: false } as const;
-
-function userForm(name: string, email: string) {
-  const formData = new FormData();
-  formData.set("name", name);
-  formData.set("email", email);
-  return formData;
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-test("createUserAction writes a user and listUsersAction reads it back", async () => {
-  const created = await createUserAction(
-    idleState,
-    userForm("  Ada Lovelace  ", "  Ada@Example.com "),
-  );
+test("addUser writes a user and fetchUsers reads it back", async () => {
+  const created = await addUser({
+    email: "  Ada@Example.com ",
+    name: "  Ada Lovelace  ",
+  });
 
   expect(created.ok).toBe(true);
   if (!created.ok) {
@@ -36,7 +27,7 @@ test("createUserAction writes a user and listUsersAction reads it back", async (
   });
   expect(created.data.id).toMatch(/^usr_[0-9A-HJKMNP-TV-Z]{14}$/);
 
-  await expect(listUsersAction()).resolves.toEqual({
+  await expect(fetchUsers()).resolves.toEqual({
     data: [
       expect.objectContaining({
         email: "ada@example.com",
@@ -48,8 +39,8 @@ test("createUserAction writes a user and listUsersAction reads it back", async (
   });
 });
 
-test("createUserAction rejects an invalid email without writing a row", async () => {
-  const rejected = await createUserAction(idleState, userForm("Ada", "ada"));
+test("addUser rejects an invalid email without writing a row", async () => {
+  const rejected = await addUser({ email: "ada", name: "Ada" });
 
   expect(rejected).toMatchObject({ ok: false });
   if (rejected.ok) {
@@ -57,14 +48,11 @@ test("createUserAction rejects an invalid email without writing a row", async ()
   }
 
   expect(rejected.error).toEqual({ email: ["Email is invalid"] });
-  await expect(listUsersAction()).resolves.toEqual({ data: [], ok: true });
+  await expect(fetchUsers()).resolves.toEqual({ data: [], ok: true });
 });
 
-test("createUserAction rejects a blank name without writing a row", async () => {
-  const rejected = await createUserAction(
-    idleState,
-    userForm("   ", "ada@example.com"),
-  );
+test("addUser rejects a blank name without writing a row", async () => {
+  const rejected = await addUser({ email: "ada@example.com", name: "   " });
 
   expect(rejected).toMatchObject({ ok: false });
   if (rejected.ok) {
@@ -72,21 +60,21 @@ test("createUserAction rejects a blank name without writing a row", async () => 
   }
 
   expect(rejected.error).toEqual({ name: ["Name is required"] });
-  await expect(listUsersAction()).resolves.toEqual({ data: [], ok: true });
+  await expect(fetchUsers()).resolves.toEqual({ data: [], ok: true });
 });
 
-test("createUserAction rejects a duplicate email without writing a second row", async () => {
-  const created = await createUserAction(
-    idleState,
-    userForm("Ada Lovelace", "ada@example.com"),
-  );
+test("addUser rejects a duplicate email without writing a second row", async () => {
+  const created = await addUser({
+    email: "ada@example.com",
+    name: "Ada Lovelace",
+  });
 
   expect(created.ok).toBe(true);
 
-  const rejected = await createUserAction(
-    idleState,
-    userForm("Ada Clone", "ADA@example.com"),
-  );
+  const rejected = await addUser({
+    email: "ADA@example.com",
+    name: "Ada Clone",
+  });
 
   expect(rejected).toMatchObject({ ok: false });
   if (rejected.ok) {
@@ -94,38 +82,35 @@ test("createUserAction rejects a duplicate email without writing a second row", 
   }
 
   expect(rejected.error).toEqual({ email: ["Email is already taken"] });
-  await expect(listUsersAction()).resolves.toEqual({
+  await expect(fetchUsers()).resolves.toEqual({
     data: [expect.objectContaining({ email: "ada@example.com" })],
     ok: true,
   });
 });
 
 test("a failed create leaves later successful creates readable", async () => {
-  const invalid = await createUserAction(idleState, userForm("Ada", "ada"));
+  const invalid = await addUser({ email: "ada", name: "Ada" });
   expect(invalid.ok).toBe(false);
 
-  const ada = await createUserAction(
-    idleState,
-    userForm("Ada Lovelace", "ada@example.com"),
-  );
+  const ada = await addUser({
+    email: "ada@example.com",
+    name: "Ada Lovelace",
+  });
   expect(ada.ok).toBe(true);
 
-  const duplicate = await createUserAction(
-    idleState,
-    userForm("Ada Clone", "ada@example.com"),
-  );
+  const duplicate = await addUser({
+    email: "ada@example.com",
+    name: "Ada Clone",
+  });
   expect(duplicate.ok).toBe(false);
 
-  const al = await createUserAction(
-    idleState,
-    userForm("Al", "al@example.com"),
-  );
+  const al = await addUser({ email: "al@example.com", name: "Al" });
   expect(al.ok).toBe(true);
   if (!ada.ok || !al.ok) {
     return;
   }
 
-  await expect(listUsersAction()).resolves.toEqual({
+  await expect(fetchUsers()).resolves.toEqual({
     data: [
       expect.objectContaining({
         email: "al@example.com",

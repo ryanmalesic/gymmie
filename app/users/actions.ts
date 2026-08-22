@@ -7,25 +7,19 @@ import { type ActionResult, fromPrismaError } from "@/lib/action";
 import { createUser, listUsers } from "@/lib/users/repository";
 import { type UserInput, userInputSchema } from "@/lib/users/schema";
 
-type CreateUserResult = Awaited<ReturnType<typeof createUser>>;
-type ListUsersResult = Awaited<ReturnType<typeof listUsers>>;
+type AddUserResult = Awaited<ReturnType<typeof createUser>>;
+type FetchUsersResult = Awaited<ReturnType<typeof listUsers>>;
 
-export async function createUserAction(
-  _prevState: ActionResult<CreateUserResult, UserInput>,
-  formData: FormData,
-): Promise<ActionResult<CreateUserResult, UserInput>> {
-  const values = {
-    email: String(formData.get("email") ?? ""),
-    name: String(formData.get("name") ?? ""),
-  };
-
-  const parsed = userInputSchema.safeParse(values);
+export async function addUser(
+  input: UserInput,
+): Promise<ActionResult<AddUserResult, UserInput>> {
+  const parsed = userInputSchema.safeParse(input);
 
   if (!parsed.success) {
     return {
       error: flattenError(parsed.error).fieldErrors,
       ok: false,
-      values,
+      values: input,
     };
   }
 
@@ -44,14 +38,12 @@ export async function createUserAction(
           P2002: { email: ["Email is already taken"] },
         },
       ),
-      values,
+      values: input,
     };
   }
 }
 
-export async function listUsersAction(): Promise<
-  ActionResult<ListUsersResult>
-> {
+export async function fetchUsers(): Promise<ActionResult<FetchUsersResult>> {
   try {
     return { data: await listUsers(), ok: true };
   } catch (error) {
