@@ -41,13 +41,10 @@ const userwhereinputSchema = z.object({
   AND: z.union([z.lazy(() => UserWhereInputObjectSchema), z.lazy(() => UserWhereInputObjectSchema).array()]).optional(),
   OR: z.lazy(() => UserWhereInputObjectSchema).array().optional(),
   NOT: z.union([z.lazy(() => UserWhereInputObjectSchema), z.lazy(() => UserWhereInputObjectSchema).array()]).optional(),
-  id: z.union([z.lazy(() => StringFilterObjectSchema), z.string()]).optional(),
   name: z.union([z.lazy(() => StringFilterObjectSchema), z.string().trim().min(1, 'Name is required').max(80, 'Name is too long')]).optional(),
   email: z.union([z.lazy(() => StringFilterObjectSchema), z.string().trim().toLowerCase().min(1, { abort: true, error: "Email is required" }).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email is invalid')]).optional(),
   emailVerified: z.union([z.lazy(() => BoolFilterObjectSchema), z.boolean()]).optional(),
-  image: z.union([z.lazy(() => StringNullableFilterObjectSchema), z.string().trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, 'Image is invalid')]).optional().nullable(),
-  createdAt: z.union([z.lazy(() => DateTimeFilterObjectSchema), z.coerce.date()]).optional(),
-  updatedAt: z.union([z.lazy(() => DateTimeFilterObjectSchema), z.coerce.date()]).optional()
+  image: z.union([z.lazy(() => StringNullableFilterObjectSchema), z.string().trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, 'Image is invalid')]).optional().nullable()
 }).strict();
 export const UserWhereInputObjectSchema: z.ZodType<Prisma.UserWhereInput> = userwhereinputSchema as unknown as z.ZodType<Prisma.UserWhereInput>;
 export const UserWhereInputObjectZodSchema = userwhereinputSchema;
@@ -91,13 +88,10 @@ export const UserUncheckedCreateInputObjectZodSchema = __makeSchema_UserUnchecke
 
 // File: UserUpdateInput.schema.ts
 const __makeSchema_UserUpdateInput_schema = () => z.object({
-  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
   name: z.union([z.string().trim().min(1, 'Name is required').max(80, 'Name is too long'), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
   email: z.union([z.string().trim().toLowerCase().min(1, { abort: true, error: "Email is required" }).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email is invalid'), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
   emailVerified: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputObjectSchema)]).optional(),
-  image: z.union([z.string().trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, 'Image is invalid'), z.lazy(() => NullableStringFieldUpdateOperationsInputObjectSchema)]).optional().nullable(),
-  createdAt: z.union([z.coerce.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputObjectSchema)]).optional(),
-  updatedAt: z.union([z.coerce.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputObjectSchema)]).optional()
+  image: z.union([z.string().trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, 'Image is invalid'), z.lazy(() => NullableStringFieldUpdateOperationsInputObjectSchema)]).optional().nullable()
 }).strict();
 export const UserUpdateInputObjectSchema: z.ZodType<Prisma.UserUpdateInput> = __makeSchema_UserUpdateInput_schema() as unknown as z.ZodType<Prisma.UserUpdateInput>;
 export const UserUpdateInputObjectZodSchema = __makeSchema_UserUpdateInput_schema();
@@ -105,13 +99,10 @@ export const UserUpdateInputObjectZodSchema = __makeSchema_UserUpdateInput_schem
 
 // File: UserUncheckedUpdateInput.schema.ts
 const __makeSchema_UserUncheckedUpdateInput_schema = () => z.object({
-  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
   name: z.union([z.string().trim().min(1, 'Name is required').max(80, 'Name is too long'), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
   email: z.union([z.string().trim().toLowerCase().min(1, { abort: true, error: "Email is required" }).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email is invalid'), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
   emailVerified: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputObjectSchema)]).optional(),
-  image: z.union([z.string().trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, 'Image is invalid'), z.lazy(() => NullableStringFieldUpdateOperationsInputObjectSchema)]).optional().nullable(),
-  createdAt: z.union([z.coerce.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputObjectSchema)]).optional(),
-  updatedAt: z.union([z.coerce.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputObjectSchema)]).optional()
+  image: z.union([z.string().trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, 'Image is invalid'), z.lazy(() => NullableStringFieldUpdateOperationsInputObjectSchema)]).optional().nullable()
 }).strict();
 export const UserUncheckedUpdateInputObjectSchema: z.ZodType<Prisma.UserUncheckedUpdateInput> = __makeSchema_UserUncheckedUpdateInput_schema() as unknown as z.ZodType<Prisma.UserUncheckedUpdateInput>;
 export const UserUncheckedUpdateInputObjectZodSchema = __makeSchema_UserUncheckedUpdateInput_schema();
@@ -131,15 +122,23 @@ export const UserCreateManyInputObjectSchema: z.ZodType<Prisma.UserCreateManyInp
 export const UserCreateManyInputObjectZodSchema = __makeSchema_UserCreateManyInput_schema();
 
 
-// File: UserUncheckedUpdateManyInput.schema.ts
-const __makeSchema_UserUncheckedUpdateManyInput_schema = () => z.object({
-  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
+// File: UserUpdateManyMutationInput.schema.ts
+const __makeSchema_UserUpdateManyMutationInput_schema = () => z.object({
   name: z.union([z.string().trim().min(1, 'Name is required').max(80, 'Name is too long'), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
   email: z.union([z.string().trim().toLowerCase().min(1, { abort: true, error: "Email is required" }).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email is invalid'), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
   emailVerified: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputObjectSchema)]).optional(),
-  image: z.union([z.string().trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, 'Image is invalid'), z.lazy(() => NullableStringFieldUpdateOperationsInputObjectSchema)]).optional().nullable(),
-  createdAt: z.union([z.coerce.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputObjectSchema)]).optional(),
-  updatedAt: z.union([z.coerce.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputObjectSchema)]).optional()
+  image: z.union([z.string().trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, 'Image is invalid'), z.lazy(() => NullableStringFieldUpdateOperationsInputObjectSchema)]).optional().nullable()
+}).strict();
+export const UserUpdateManyMutationInputObjectSchema: z.ZodType<Prisma.UserUpdateManyMutationInput> = __makeSchema_UserUpdateManyMutationInput_schema() as unknown as z.ZodType<Prisma.UserUpdateManyMutationInput>;
+export const UserUpdateManyMutationInputObjectZodSchema = __makeSchema_UserUpdateManyMutationInput_schema();
+
+
+// File: UserUncheckedUpdateManyInput.schema.ts
+const __makeSchema_UserUncheckedUpdateManyInput_schema = () => z.object({
+  name: z.union([z.string().trim().min(1, 'Name is required').max(80, 'Name is too long'), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
+  email: z.union([z.string().trim().toLowerCase().min(1, { abort: true, error: "Email is required" }).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email is invalid'), z.lazy(() => StringFieldUpdateOperationsInputObjectSchema)]).optional(),
+  emailVerified: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputObjectSchema)]).optional(),
+  image: z.union([z.string().trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, 'Image is invalid'), z.lazy(() => NullableStringFieldUpdateOperationsInputObjectSchema)]).optional().nullable()
 }).strict();
 export const UserUncheckedUpdateManyInputObjectSchema: z.ZodType<Prisma.UserUncheckedUpdateManyInput> = __makeSchema_UserUncheckedUpdateManyInput_schema() as unknown as z.ZodType<Prisma.UserUncheckedUpdateManyInput>;
 export const UserUncheckedUpdateManyInputObjectZodSchema = __makeSchema_UserUncheckedUpdateManyInput_schema();

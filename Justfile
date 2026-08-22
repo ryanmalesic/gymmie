@@ -34,23 +34,23 @@ format:
 check:
     pnpm check
 
-# Run unit and integration tests
+# Set up the database and run all tests (unit + integration)
 test:
     bash scripts/test.sh
 
-# Run unit tests only
+# Run unit tests only (no database required)
 test-unit:
-    pnpm exec vitest run --project unit
+    pnpm test:unit
 
 # Run unit tests in watch mode
 test-watch:
-    pnpm test:watch
+    pnpm test:unit:watch
 
-# Run integration tests against the test database
+# Set up the database and run integration tests only
 test-integration:
-    bash scripts/test.sh --project integration
+    bash scripts/test-integration.sh
 
-# Run Playwright e2e tests
+# Set up the database and run Playwright e2e tests
 e2e:
     bash scripts/e2e.sh
 

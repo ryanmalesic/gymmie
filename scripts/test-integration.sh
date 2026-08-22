@@ -7,6 +7,4 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${script_dir}/ensure-test-db.sh"
 
 ensure_test_db
-
-pnpm exec vitest run "$@"
 pnpm exec vitest run --config vitest.integration.config.mts "$@"

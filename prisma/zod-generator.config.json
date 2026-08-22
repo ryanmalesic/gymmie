@@ -4,8 +4,19 @@
   "pureModels": true,
   "useMultipleFiles": false,
   "variants": {
-    "input": { "enabled": true },
-    "pure": { "enabled": true },
-    "result": { "enabled": false }
+    "input": {
+      "enabled": true
+    },
+    "pure": {
+      "enabled": true
+    },
+    "result": {
+      "enabled": false
+    }
+  },
+  "models": {
+    "User": {
+      "enabled": true
+    }
   }
 }

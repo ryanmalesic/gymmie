@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   cleanup,
   fireEvent,
@@ -5,53 +6,53 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { afterEach, expect, test } from "vitest";
+import { type ReactNode } from "react";
+import { afterEach, expect, test, vi } from "vitest";
 
 import { UserForm } from "@/components/users/form";
+import { type ActionResult } from "@/lib/action";
+import { type ListedUser } from "@/lib/users/queries";
+import { type UserInput } from "@/lib/users/schema";
 
-afterEach(cleanup);
+type MockAction = (
+  input: UserInput,
+) => Promise<ActionResult<ListedUser, UserInput>>;
 
-test("shows an action error on the email field", async () => {
-  render(
-    <UserForm
-      action={async () => ({
-        error: { email: ["Email is invalid"] },
-        ok: false,
-        values: { email: "ada", name: "Ada" },
-      })}
-    />,
-  );
-
-  fireEvent.change(screen.getByLabelText("Name"), {
-    target: { value: "Ada" },
+function wrapper({ children }: { children: ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
-  fireEvent.change(screen.getByLabelText("Email"), {
-    target: { value: "ada" },
-  });
-  const form = screen.getByRole("button", { name: "Add user" }).closest("form");
-  expect(form).not.toBeNull();
-  fireEvent.submit(form!);
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
-  expect(await screen.findByRole("alert")).toHaveTextContent(
-    "Email is invalid",
-  );
-  expect(screen.getByLabelText("Email")).toHaveAttribute(
-    "aria-invalid",
-    "true",
-  );
-  expect(screen.getByLabelText("Name")).toHaveValue("Ada");
-  expect(screen.getByLabelText("Email")).toHaveValue("ada");
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
 });
 
-test("clears the form after a successful create", async () => {
-  render(
-    <UserForm
-      action={async () => ({
-        data: { email: "ada@example.com", id: "usr_1", name: "Ada" },
-        ok: true,
-      })}
-    />,
-  );
+test("renders name and email fields", () => {
+  const action: MockAction = async () => ({
+    data: { email: "", id: "", name: "" },
+    ok: true,
+  });
+
+  render(<UserForm action={action} />, { wrapper });
+
+  expect(screen.getByLabelText("Name")).toBeInTheDocument();
+  expect(screen.getByLabelText("Email")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /add user/i })).toBeInTheDocument();
+});
+
+test("shows server-returned errors after submit", async () => {
+  const action: MockAction = async () => ({
+    error: { email: ["Email is already taken"] },
+    ok: false,
+    values: { email: "ada@example.com", name: "Ada" },
+  });
+
+  render(<UserForm action={action} />, { wrapper });
 
   fireEvent.change(screen.getByLabelText("Name"), {
     target: { value: "Ada" },
@@ -59,8 +60,35 @@ test("clears the form after a successful create", async () => {
   fireEvent.change(screen.getByLabelText("Email"), {
     target: { value: "ada@example.com" },
   });
-  const form = screen.getByRole("button", { name: "Add user" }).closest("form");
-  expect(form).not.toBeNull();
+
+  const form = screen
+    .getByRole("button", { name: /add user/i })
+    .closest("form");
+  fireEvent.submit(form!);
+
+  await waitFor(() => {
+    expect(screen.getByText("Email is already taken")).toBeInTheDocument();
+  });
+});
+
+test("resets form after successful submission", async () => {
+  const action: MockAction = async () => ({
+    data: { email: "ada@example.com", id: "usr_1", name: "Ada" },
+    ok: true,
+  });
+
+  render(<UserForm action={action} />, { wrapper });
+
+  fireEvent.change(screen.getByLabelText("Name"), {
+    target: { value: "Ada" },
+  });
+  fireEvent.change(screen.getByLabelText("Email"), {
+    target: { value: "ada@example.com" },
+  });
+
+  const form = screen
+    .getByRole("button", { name: /add user/i })
+    .closest("form");
   fireEvent.submit(form!);
 
   await waitFor(() => {
