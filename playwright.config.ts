@@ -5,6 +5,11 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is not set");
 }
 
+const betterAuthSecret =
+  process.env.BETTER_AUTH_SECRET ??
+  "test-only-better-auth-secret-32-characters";
+process.env.BETTER_AUTH_SECRET ??= betterAuthSecret;
+
 const config = defineConfig({
   forbidOnly: Boolean(process.env.CI),
   fullyParallel: true,
@@ -25,6 +30,8 @@ const config = defineConfig({
   webServer: {
     command: "pnpm dev",
     env: {
+      BETTER_AUTH_SECRET: betterAuthSecret,
+      BETTER_AUTH_URL: "http://localhost:3000",
       DATABASE_URL: databaseUrl,
     },
     reuseExistingServer: !process.env.CI,

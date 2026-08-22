@@ -19,6 +19,7 @@ jobs:
     name: check
     runs-on: ubuntu-latest
     env:
+      BETTER_AUTH_SECRET: test-only-better-auth-secret-32-characters
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/gymmie?sslmode=disable
       SHADOW_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
     steps:

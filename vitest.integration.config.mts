@@ -4,6 +4,9 @@ import { defineConfig } from "vitest/config";
 const databaseUrl =
   process.env.DATABASE_URL ??
   "postgres://postgres:postgres@localhost:51214/template1?sslmode=disable";
+const betterAuthSecret =
+  process.env.BETTER_AUTH_SECRET ??
+  "test-only-better-auth-secret-32-characters";
 
 const config = defineConfig({
   plugins: [react()],
@@ -12,6 +15,8 @@ const config = defineConfig({
   },
   test: {
     env: {
+      BETTER_AUTH_SECRET: betterAuthSecret,
+      BETTER_AUTH_URL: "http://localhost:3000",
       CI: process.env.CI ?? "true",
       DATABASE_URL: databaseUrl,
     },
