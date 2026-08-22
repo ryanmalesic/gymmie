@@ -2,6 +2,8 @@
 
 import { useSearchParams } from "next/navigation";
 
+import { AppleIcon } from "@/components/icons/apple";
+import { GoogleIcon } from "@/components/icons/google";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
 
 export default function SignInPage() {
@@ -21,6 +24,13 @@ export default function SignInPage() {
     authClient.signIn.social({
       callbackURL: callbackUrl,
       provider: "google",
+    });
+  }
+
+  function handleAppleSignIn() {
+    authClient.signIn.social({
+      callbackURL: callbackUrl,
+      provider: "apple",
     });
   }
 
@@ -37,9 +47,28 @@ export default function SignInPage() {
               : "Sign in to access Gymmie."}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Button className="w-full" onClick={handleGoogleSignIn}>
+        <CardContent className="flex flex-col gap-4">
+          <Button
+            className="w-full gap-2"
+            onClick={handleGoogleSignIn}
+            size="lg"
+            variant="outline"
+          >
+            <GoogleIcon className="size-5" />
             Continue with Google
+          </Button>
+          <div className="flex items-center gap-3">
+            <Separator className="flex-1" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <Separator className="flex-1" />
+          </div>
+          <Button
+            className="w-full gap-2 bg-black text-white hover:bg-black/90"
+            onClick={handleAppleSignIn}
+            size="lg"
+          >
+            <AppleIcon className="size-5" />
+            Continue with Apple
           </Button>
         </CardContent>
       </Card>
