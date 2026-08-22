@@ -23,7 +23,10 @@ test("renders the users heading and existing users", async () => {
   expect(screen.getByLabelText("Name")).toBeInTheDocument();
   expect(screen.getByLabelText("Email")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Add user" })).toBeInTheDocument();
-  expect(screen.getByText("Ada (ada@example.com)")).toBeInTheDocument();
+  expect(screen.getByRole("cell", { name: "Ada" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("cell", { name: "ada@example.com" }),
+  ).toBeInTheDocument();
 });
 
 test("renders a load error when listing users fails", async () => {

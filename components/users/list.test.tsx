@@ -19,6 +19,12 @@ test("renders each user name and email", () => {
     />,
   );
 
-  expect(screen.getByText("Ada (ada@example.com)")).toBeInTheDocument();
-  expect(screen.getByText("Al (al@example.com)")).toBeInTheDocument();
+  expect(screen.getByRole("cell", { name: "Ada" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("cell", { name: "ada@example.com" }),
+  ).toBeInTheDocument();
+  expect(screen.getByRole("cell", { name: "Al" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("cell", { name: "al@example.com" }),
+  ).toBeInTheDocument();
 });
