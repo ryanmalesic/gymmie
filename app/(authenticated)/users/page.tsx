@@ -1,7 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 import { addUser, fetchUsers } from "@/app/users/actions";
-import { Authenticated } from "@/components/auth/authenticated";
 import { UsersPage } from "@/components/users/page";
 import { makeQueryClient } from "@/lib/query/client";
 import { userKeys } from "@/lib/users/keys";
@@ -17,10 +16,8 @@ export default async function UsersRoute() {
   }
 
   return (
-    <Authenticated>
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <UsersPage listAction={fetchUsers} mutationAction={addUser} />
-      </HydrationBoundary>
-    </Authenticated>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <UsersPage listAction={fetchUsers} mutationAction={addUser} />
+    </HydrationBoundary>
   );
 }
