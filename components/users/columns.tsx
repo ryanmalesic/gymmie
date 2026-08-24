@@ -1,15 +1,32 @@
 "use client";
 
-import { createColumnHelper } from "@tanstack/react-table";
+import {
+  columnFilteringFeature,
+  createColumnHelper,
+  createFilteredRowModel,
+  createSortedRowModel,
+  filterFn_includesString,
+  rowSortingFeature,
+  sortFn_text,
+  tableFeatures,
+} from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
-import { type UserTableFeatures } from "@/components/users/data-table-features";
-import { type ListedUser } from "@/lib/users/queries";
+import { type User } from "@/lib/users/schema";
 
-const columnHelper = createColumnHelper<UserTableFeatures, ListedUser>();
+export const userTableFeatures = tableFeatures({
+  columnFilteringFeature,
+  filteredRowModel: createFilteredRowModel(),
+  filterFns: { includesString: filterFn_includesString },
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  sortFns: { text: sortFn_text },
+});
+export type UserTableFeatures = typeof userTableFeatures;
 
-export const columns = columnHelper.columns([
+const columnHelper = createColumnHelper<UserTableFeatures, User>();
+export const userColumns = columnHelper.columns([
   columnHelper.accessor("name", {
     header: ({ column }) => (
       <button

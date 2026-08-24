@@ -1,9 +1,9 @@
 import { beforeEach, expect, test, vi } from "vitest";
 
-import { addUser, fetchUsers } from "@/app/users/actions";
+import { addUser, fetchUsers } from "@/lib/users/actions";
 
-vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn(),
+vi.mock("@/lib/auth/session.server", () => ({
+  requireSession: vi.fn().mockResolvedValue({}),
 }));
 
 beforeEach(() => {
@@ -17,16 +17,13 @@ test("addUser writes a user and fetchUsers reads it back", async () => {
   });
 
   expect(created.ok).toBe(true);
-  if (!created.ok) {
-    return;
-  }
+  if (!created.ok) return;
 
   expect(created.data).toMatchObject({
     email: "ada@example.com",
     name: "Ada Lovelace",
   });
   expect(created.data.id).toMatch(/^usr_[0-9A-HJKMNP-TV-Z]{14}$/);
-
   await expect(fetchUsers()).resolves.toEqual({
     data: [
       expect.objectContaining({
@@ -39,27 +36,21 @@ test("addUser writes a user and fetchUsers reads it back", async () => {
   });
 });
 
-test("addUser rejects an invalid email without writing a row", async () => {
-  const rejected = await addUser({ email: "ada", name: "Ada" });
+test("addUser rejects invalid input without writing a row", async () => {
+  const invalidEmail = await addUser({ email: "ada", name: "Ada" });
+  expect(invalidEmail).toMatchObject({
+    error: { email: ["Email is invalid"] },
+    ok: false,
+  });
 
-  expect(rejected).toMatchObject({ ok: false });
-  if (rejected.ok) {
-    return;
-  }
-
-  expect(rejected.error).toEqual({ email: ["Email is invalid"] });
-  await expect(fetchUsers()).resolves.toEqual({ data: [], ok: true });
-});
-
-test("addUser rejects a blank name without writing a row", async () => {
-  const rejected = await addUser({ email: "ada@example.com", name: "   " });
-
-  expect(rejected).toMatchObject({ ok: false });
-  if (rejected.ok) {
-    return;
-  }
-
-  expect(rejected.error).toEqual({ name: ["Name is required"] });
+  const blankName = await addUser({
+    email: "ada@example.com",
+    name: "   ",
+  });
+  expect(blankName).toMatchObject({
+    error: { name: ["Name is required"] },
+    ok: false,
+  });
   await expect(fetchUsers()).resolves.toEqual({ data: [], ok: true });
 });
 
@@ -68,20 +59,16 @@ test("addUser rejects a duplicate email without writing a second row", async () 
     email: "ada@example.com",
     name: "Ada Lovelace",
   });
-
   expect(created.ok).toBe(true);
 
-  const rejected = await addUser({
+  const duplicate = await addUser({
     email: "ADA@example.com",
     name: "Ada Clone",
   });
-
-  expect(rejected).toMatchObject({ ok: false });
-  if (rejected.ok) {
-    return;
-  }
-
-  expect(rejected.error).toEqual({ email: ["Email is already taken"] });
+  expect(duplicate).toMatchObject({
+    error: { email: ["Email is already taken"] },
+    ok: false,
+  });
   await expect(fetchUsers()).resolves.toEqual({
     data: [expect.objectContaining({ email: "ada@example.com" })],
     ok: true,
@@ -89,26 +76,18 @@ test("addUser rejects a duplicate email without writing a second row", async () 
 });
 
 test("a failed create leaves later successful creates readable", async () => {
-  const invalid = await addUser({ email: "ada", name: "Ada" });
-  expect(invalid.ok).toBe(false);
-
+  expect((await addUser({ email: "ada", name: "Ada" })).ok).toBe(false);
   const ada = await addUser({
     email: "ada@example.com",
     name: "Ada Lovelace",
   });
   expect(ada.ok).toBe(true);
-
-  const duplicate = await addUser({
-    email: "ada@example.com",
-    name: "Ada Clone",
-  });
-  expect(duplicate.ok).toBe(false);
-
+  expect(
+    (await addUser({ email: "ada@example.com", name: "Ada Clone" })).ok,
+  ).toBe(false);
   const al = await addUser({ email: "al@example.com", name: "Al" });
   expect(al.ok).toBe(true);
-  if (!ada.ok || !al.ok) {
-    return;
-  }
+  if (!ada.ok || !al.ok) return;
 
   await expect(fetchUsers()).resolves.toEqual({
     data: [

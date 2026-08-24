@@ -10,13 +10,12 @@ import { type ReactNode } from "react";
 import { afterEach, expect, test, vi } from "vitest";
 
 import { UserForm } from "@/components/users/form";
-import { type ActionResult } from "@/lib/action";
-import { type ListedUser } from "@/lib/users/queries";
-import { type UserInput } from "@/lib/users/schema";
 
-type MockAction = (
-  input: UserInput,
-) => Promise<ActionResult<ListedUser, UserInput>>;
+const mocks = vi.hoisted(() => ({ addUser: vi.fn() }));
+
+vi.mock("@/lib/users/actions", () => ({
+  addUser: mocks.addUser,
+}));
 
 function wrapper({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient({
@@ -29,16 +28,11 @@ function wrapper({ children }: { children: ReactNode }) {
 
 afterEach(() => {
   cleanup();
-  vi.clearAllMocks();
+  mocks.addUser.mockReset();
 });
 
 test("renders name and email fields", () => {
-  const action: MockAction = async () => ({
-    data: { email: "", id: "", name: "" },
-    ok: true,
-  });
-
-  render(<UserForm action={action} />, { wrapper });
+  render(<UserForm />, { wrapper });
 
   expect(screen.getByLabelText("Name")).toBeInTheDocument();
   expect(screen.getByLabelText("Email")).toBeInTheDocument();
@@ -46,25 +40,14 @@ test("renders name and email fields", () => {
 });
 
 test("shows server-returned errors after submit", async () => {
-  const action: MockAction = async () => ({
+  mocks.addUser.mockResolvedValue({
     error: { email: ["Email is already taken"] },
     ok: false,
     values: { email: "ada@example.com", name: "Ada" },
   });
 
-  render(<UserForm action={action} />, { wrapper });
-
-  fireEvent.change(screen.getByLabelText("Name"), {
-    target: { value: "Ada" },
-  });
-  fireEvent.change(screen.getByLabelText("Email"), {
-    target: { value: "ada@example.com" },
-  });
-
-  const form = screen
-    .getByRole("button", { name: /add user/i })
-    .closest("form");
-  fireEvent.submit(form!);
+  render(<UserForm />, { wrapper });
+  submitUser("Ada", "ada@example.com");
 
   await waitFor(() => {
     expect(screen.getByText("Email is already taken")).toBeInTheDocument();
@@ -72,27 +55,47 @@ test("shows server-returned errors after submit", async () => {
 });
 
 test("resets form after successful submission", async () => {
-  const action: MockAction = async () => ({
+  mocks.addUser.mockResolvedValue({
     data: { email: "ada@example.com", id: "usr_1", name: "Ada" },
     ok: true,
   });
 
-  render(<UserForm action={action} />, { wrapper });
-
-  fireEvent.change(screen.getByLabelText("Name"), {
-    target: { value: "Ada" },
-  });
-  fireEvent.change(screen.getByLabelText("Email"), {
-    target: { value: "ada@example.com" },
-  });
-
-  const form = screen
-    .getByRole("button", { name: /add user/i })
-    .closest("form");
-  fireEvent.submit(form!);
+  render(<UserForm />, { wrapper });
+  submitUser("Ada", "ada@example.com");
 
   await waitFor(() => {
     expect(screen.getByLabelText("Name")).toHaveValue("");
     expect(screen.getByLabelText("Email")).toHaveValue("");
   });
+});
+
+function submitUser(name: string, email: string) {
+  fireEvent.change(screen.getByLabelText("Name"), { target: { value: name } });
+  fireEvent.change(screen.getByLabelText("Email"), {
+    target: { value: email },
+  });
+  fireEvent.submit(
+    screen.getByRole("button", { name: /add user/i }).closest("form")!,
+  );
+}
+
+test("shows a server form error after submission", async () => {
+  mocks.addUser.mockResolvedValue({
+    error: { form: ["Unable to create user"] },
+    ok: false,
+  });
+
+  render(<UserForm />, { wrapper });
+  submitUser("Ada", "ada@example.com");
+
+  expect(await screen.findByText("Unable to create user")).toBeInTheDocument();
+});
+
+test("shows a safe message when submission rejects unexpectedly", async () => {
+  mocks.addUser.mockRejectedValue(new Error("database unavailable"));
+
+  render(<UserForm />, { wrapper });
+  submitUser("Ada", "ada@example.com");
+
+  expect(await screen.findByText("Unable to create user")).toBeInTheDocument();
 });

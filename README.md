@@ -1,6 +1,6 @@
 # Gymmie
 
-Track gym users. The home page lists people stored in Postgres and lets you add new ones.
+Track gym users. The public home page introduces the app; after signing in, `/users` lists people stored in Postgres and lets you add new ones.
 
 ## Getting started
 
@@ -16,6 +16,9 @@ just dev
 ## Commands
 
 ```bash
+just build             # production build
+just lint              # lint and apply safe fixes
+just format            # format the repository
 just test              # unit + integration tests
 just test-unit         # unit tests only
 just test-integration  # integration tests against Postgres

@@ -3,7 +3,6 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type RowData,
   type SortingState,
   useTable,
 } from "@tanstack/react-table";
@@ -18,6 +17,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -27,26 +27,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  features,
   type UserTableFeatures,
-} from "@/components/users/data-table-features";
+  userTableFeatures,
+} from "@/components/users/columns";
+import { type User } from "@/lib/users/schema";
 
-interface DataTableProps<TData extends RowData> {
-  columns: ColumnDef<UserTableFeatures, TData>[];
-  data: TData[];
-}
+type UserTableProps = {
+  columns: ColumnDef<UserTableFeatures, User>[];
+  data: User[];
+};
 
-export function DataTable<TData extends RowData>({
-  columns,
-  data,
-}: DataTableProps<TData>) {
+export function UserTable({ columns, data }: UserTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useTable({
     columns,
     data,
-    features,
+    features: userTableFeatures,
     onColumnFiltersChange: setColumnFilters,
     onSortingChange: setSorting,
     state: { columnFilters, sorting },
@@ -58,8 +56,8 @@ export function DataTable<TData extends RowData>({
     <div className="flex flex-col gap-4">
       <Input
         className="max-w-sm"
-        onChange={(e) =>
-          table.getColumn("email")?.setFilterValue(e.target.value)
+        onChange={(event) =>
+          table.getColumn("email")?.setFilterValue(event.target.value)
         }
         placeholder="Filter emails..."
         value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
@@ -102,6 +100,34 @@ export function DataTable<TData extends RowData>({
           </TableBody>
         </Table>
       )}
+    </div>
+  );
+}
+
+export function UserTableSkeleton() {
+  return (
+    <div
+      aria-label="Loading people"
+      aria-live="polite"
+      className="space-y-3"
+      role="status"
+    >
+      <Skeleton className="h-7 w-full max-w-sm" />
+      <div className="overflow-hidden rounded-md border">
+        <div className="grid grid-cols-2 gap-4 border-b p-2">
+          <Skeleton className="h-4" />
+          <Skeleton className="h-4" />
+        </div>
+        {["first", "second", "third"].map((row) => (
+          <div
+            className="grid grid-cols-2 gap-4 border-b p-2 last:border-b-0"
+            key={row}
+          >
+            <Skeleton className="h-4" />
+            <Skeleton className="h-4" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

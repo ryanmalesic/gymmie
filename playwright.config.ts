@@ -1,4 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -9,6 +13,8 @@ const betterAuthSecret =
   process.env.BETTER_AUTH_SECRET ??
   "test-only-better-auth-secret-32-characters";
 process.env.BETTER_AUTH_SECRET ??= betterAuthSecret;
+
+const baseUrl = "http://localhost:3000";
 
 const config = defineConfig({
   forbidOnly: Boolean(process.env.CI),
@@ -24,18 +30,19 @@ const config = defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.test.ts",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: baseUrl,
     trace: "on-first-retry",
   },
   webServer: {
     command: "pnpm dev",
     env: {
+      ...process.env,
       BETTER_AUTH_SECRET: betterAuthSecret,
-      BETTER_AUTH_URL: "http://localhost:3000",
+      BETTER_AUTH_URL: baseUrl,
       DATABASE_URL: databaseUrl,
     },
     reuseExistingServer: !process.env.CI,
-    url: "http://localhost:3000",
+    url: baseUrl,
   },
   workers: process.env.CI ? 1 : undefined,
 });

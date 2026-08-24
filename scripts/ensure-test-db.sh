@@ -24,6 +24,7 @@ ensure_test_db() {
 
   export DATABASE_URL="${DATABASE_URL:-postgres://postgres:postgres@localhost:${db_port}/template1?sslmode=disable}"
   export SHADOW_DATABASE_URL="${SHADOW_DATABASE_URL:-postgres://postgres:postgres@localhost:${shadow_port}/template1?sslmode=disable}"
+  export GYMMIE_TEST_DATABASE="true"
 
   if ! db_ready; then
     if [[ -n "${CI:-}" ]]; then
@@ -33,9 +34,10 @@ ensure_test_db() {
         exit 1
       fi
     else
-      if ! pnpm exec prisma dev ls 2>/dev/null | grep -q "${name}"; then
-        pnpm exec prisma dev --name "${name}" --detach
+      if pnpm exec prisma dev ls 2>/dev/null | grep -q "${name}"; then
+        pnpm exec prisma dev rm "${name}"
       fi
+      pnpm exec prisma dev --name "${name}" --detach
       if ! wait_for_db 120; then
         echo "timed out waiting for prisma dev on ${DATABASE_URL}" >&2
         exit 1

@@ -1,7 +1,7 @@
 import { getPrisma } from "@/lib/db";
-import { type UserInput } from "@/lib/users/schema";
+import { type CreateUser } from "@/lib/users/schema";
 
-export function createUser(input: UserInput) {
+export function createUser(input: CreateUser) {
   return getPrisma().user.create({
     data: {
       email: input.email,

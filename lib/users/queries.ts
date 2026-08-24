@@ -1,22 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { type ActionResult } from "@/lib/action";
+import { type ActionFailure, type ActionResult, fromError } from "@/lib/action";
+import { fetchUsers } from "@/lib/users/actions";
 import { userKeys } from "@/lib/users/keys";
+import { loadUsersFailure, type User } from "@/lib/users/schema";
 
-export type ListedUser = { email: string; id: string; name: string };
-
-type ListFetcher = () => Promise<ActionResult<ListedUser[]>>;
-
-export function useUsersQuery(
-  fetcher: ListFetcher,
-  initialData?: ListedUser[],
-) {
-  return useQuery({
-    initialData,
+export function useUsersQuery(initialState?: ActionResult<User[]>) {
+  return useQuery<User[], ActionFailure>({
+    initialData: initialState?.ok ? initialState.data : undefined,
     queryFn: async () => {
-      const result = await fetcher();
-      if (!result.ok) throw new Error(result.error.form?.join(" "));
-      return result.data;
+      try {
+        const result = await fetchUsers();
+        if (!result.ok) {
+          throw result;
+        }
+        return result.data;
+      } catch (error) {
+        throw fromError(error, {}, loadUsersFailure);
+      }
     },
     queryKey: userKeys.list(),
   });

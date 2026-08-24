@@ -1,11 +1,11 @@
 import { expect, test } from "vitest";
 import { flattenError } from "zod";
 
-import { userInputSchema } from "@/lib/users/schema";
+import { createUserSchema } from "@/lib/users/schema";
 
 test("trims the name and lowercases the email", () => {
   expect(
-    userInputSchema.safeParse({
+    createUserSchema.safeParse({
       email: "  Ada@Example.com ",
       name: "  Ada Lovelace  ",
     }),
@@ -19,7 +19,7 @@ test("trims the name and lowercases the email", () => {
 });
 
 test("rejects a blank name", () => {
-  const result = userInputSchema.safeParse({
+  const result = createUserSchema.safeParse({
     email: "ada@example.com",
     name: "   ",
   });
@@ -35,7 +35,7 @@ test("rejects a blank name", () => {
 });
 
 test("rejects a blank email without also calling it invalid", () => {
-  const result = userInputSchema.safeParse({
+  const result = createUserSchema.safeParse({
     email: "   ",
     name: "Ada",
   });
@@ -51,7 +51,7 @@ test("rejects a blank email without also calling it invalid", () => {
 });
 
 test("rejects an invalid email", () => {
-  const result = userInputSchema.safeParse({
+  const result = createUserSchema.safeParse({
     email: "ada",
     name: "Ada",
   });

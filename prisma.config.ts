@@ -1,10 +1,15 @@
 import "dotenv/config";
 import { defineConfig, env } from "prisma/config";
 
+const databaseUrl = env("DATABASE_URL");
+const shadowDatabaseUrl = process.env.SHADOW_DATABASE_URL;
+
 const config = defineConfig({
   datasource: {
-    shadowDatabaseUrl: env("SHADOW_DATABASE_URL"),
-    url: env("DATABASE_URL"),
+    url: databaseUrl,
+    ...(shadowDatabaseUrl && shadowDatabaseUrl !== databaseUrl
+      ? { shadowDatabaseUrl }
+      : {}),
   },
   migrations: {
     path: "prisma/migrations",
