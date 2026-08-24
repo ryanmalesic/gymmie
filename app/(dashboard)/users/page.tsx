@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
-import { UsersPage } from "@/components/users/page";
+import { UsersPage } from "@/components/users";
 import { requireSession } from "@/lib/auth/session.server";
 import { makeQueryClient } from "@/lib/query/client";
 import { fetchUsers } from "@/lib/users/actions";

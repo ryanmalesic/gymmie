@@ -20,7 +20,7 @@ async function addSessionCookie(
   ]);
 }
 
-test("protects users on direct and client-side navigation", async ({
+test("opens the dashboard shell and users from the landing page", async ({
   context,
   page,
 }) => {
@@ -32,19 +32,27 @@ test("protects users on direct and client-side navigation", async ({
 
   await addSessionCookie(context, testSession.cookie);
 
-  await page.goto("/users");
+  await page.goto("/");
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "Open dashboard" })
+    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  expect(new URL(page.url()).pathname).toBe("/dashboard");
+  expect(page.url()).not.toContain("(dashboard)");
+  expect(page.url()).not.toContain("(marketing)");
+  expect(page.url()).not.toContain("(auth)");
+  await expect(
+    page.getByRole("heading", { name: "Welcome back, Route Test User" }),
+  ).toBeVisible();
+  await expect(page.getByText("Gymmie").first()).toBeVisible();
+
+  await page.getByRole("link", { exact: true, name: "Users" }).click();
   await expect(page).toHaveURL(/\/users$/);
   expect(new URL(page.url()).pathname).toBe("/users");
-  expect(page.url()).not.toContain("(authenticated)");
+  expect(page.url()).not.toContain("(dashboard)");
   await expect(page.getByRole("heading", { name: "Users" })).toBeVisible();
   await expect(page.getByRole("cell", { name: email })).toBeVisible();
-
-  await page.goto("/");
-  await page.getByRole("link", { name: "Get started" }).click();
-  await expect(page).toHaveURL(/\/users$/);
-  expect(new URL(page.url()).pathname).toBe("/users");
-  expect(page.url()).not.toContain("(authenticated)");
-  await expect(page.getByRole("heading", { name: "Users" })).toBeVisible();
 });
 
 test("keeps the users query and form usable under the root provider", async ({
@@ -74,29 +82,28 @@ test("keeps the users query and form usable under the root provider", async ({
   await expect(page.getByRole("cell", { name: createdEmail })).toBeVisible();
 });
 
-test("redirects an expired session to sign in with the users callback", async ({
-  context,
-  page,
-}) => {
-  const session = await createTestSession(databaseUrl, {
-    email: `e2e-expired-session-${crypto.randomUUID()}@example.com`,
-    name: "Expired Session User",
-  });
-  const createdEmail = `e2e-expired-create-${crypto.randomUUID()}@example.com`;
+test("logs out from the dashboard user menu", async ({ context, page }) => {
+  await addSessionCookie(
+    context,
+    (
+      await createTestSession(databaseUrl, {
+        email: `e2e-logout-${crypto.randomUUID()}@example.com`,
+        name: "Logout Test User",
+      })
+    ).cookie,
+  );
 
-  await addSessionCookie(context, session.cookie);
-  await page.goto("/users");
-  await context.clearCookies();
-
-  await page.getByLabel("Name").fill("Expired Session User");
-  await page.getByLabel("Email").fill(createdEmail);
-  await page.getByRole("button", { name: "Add user" }).click();
-
-  await expect(page).toHaveURL(/\/sign-in\?/);
-  const redirectUrl = new URL(page.url());
-  expect(redirectUrl.pathname).toBe("/sign-in");
-  expect(redirectUrl.searchParams.get("callbackUrl")).toBe("/users");
+  await page.goto("/dashboard");
   await expect(
-    page.locator('[data-slot="card-title"]', { hasText: "Sign in" }),
+    page.getByRole("heading", { name: "Welcome back, Logout Test User" }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: /logout test user/i }).click();
+  await page.getByRole("menuitem", { name: "Log out" }).click();
+
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { name: "Gymmie" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Sign in" }).first(),
   ).toBeVisible();
 });

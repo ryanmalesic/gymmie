@@ -10,9 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { userColumns } from "@/components/users/columns";
 import { UserForm } from "@/components/users/form";
 import { UserTable, UserTableSkeleton } from "@/components/users/table";
+import { userColumns } from "@/components/users/table/columns";
 import { type ActionResult } from "@/lib/action";
 import { useUsersQuery } from "@/lib/users/queries";
 import { type User } from "@/lib/users/schema";
@@ -25,7 +25,7 @@ export function UsersPage({ initialState }: UsersPageProps) {
   const { data, error, isError, isPending } = useUsersQuery(initialState);
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <h1 className="font-heading text-3xl font-semibold tracking-tight">
         Users
       </h1>
@@ -58,6 +58,6 @@ export function UsersPage({ initialState }: UsersPageProps) {
           )}
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }

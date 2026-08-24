@@ -2,12 +2,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 
-import UsersRoute from "@/app/users/page";
+import UsersRoute from "@/app/(dashboard)/users/page";
 import { requireSession } from "@/lib/auth/session.server";
 import { makeQueryClient } from "@/lib/query/client";
 import { fetchUsers } from "@/lib/users/actions";
 
-vi.mock("@/components/users/page", () => ({
+vi.mock("@/components/users", () => ({
   UsersPage: ({ initialState }: { initialState: { ok: boolean } }) => (
     <p>Users page ({initialState.ok ? "success" : "failure"})</p>
   ),

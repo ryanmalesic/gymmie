@@ -3,7 +3,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { type ReactNode } from "react";
 import { afterEach, expect, test, vi } from "vitest";
 
-import { UsersPage } from "@/components/users/page";
+import { UsersPage } from "@/components/users";
 
 const mocks = vi.hoisted(() => ({
   addUser: vi.fn(),

@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 
-import SignInPage from "@/app/sign-in/page";
+import { SignInPage } from "@/components/sign-in";
 
 const mocks = vi.hoisted(() => ({
   callbackCandidate: null as null | string | undefined,
@@ -36,13 +36,13 @@ afterEach(() => {
 });
 
 const providers = [
-  { button: "Continue with Google", provider: "google" },
-  { button: "Continue with Apple", provider: "apple" },
+  { button: "Login with Google", provider: "google" },
+  { button: "Login with Apple", provider: "apple" },
 ] as const;
 
 const validCallbackCandidates = Array.from({ length: 100 }, (_, index) => {
   if (index === 0) {
-    return "";
+    return "/dashboard";
   }
 
   if (index === 1) {
@@ -81,12 +81,12 @@ const invalidCallbackCandidates: Array<null | string | undefined> = Array.from(
 test("renders the public sign-in page without a session", () => {
   render(<SignInPage />);
 
-  expect(screen.getByText("Sign in", { selector: "div" })).toBeVisible();
+  expect(screen.getByText("Welcome back", { selector: "div" })).toBeVisible();
   expect(
-    screen.getByRole("button", { name: "Continue with Google" }),
+    screen.getByRole("button", { name: "Login with Google" }),
   ).toBeVisible();
   expect(
-    screen.getByRole("button", { name: "Continue with Apple" }),
+    screen.getByRole("button", { name: "Login with Apple" }),
   ).toBeVisible();
 });
 
@@ -119,7 +119,7 @@ test.each(providers)(
 );
 
 test.each(providers)(
-  "replaces every invalid or missing callback with / for $provider",
+  "replaces every invalid or missing callback with /dashboard for $provider",
   ({ button, provider }) => {
     for (const callbackCandidate of invalidCallbackCandidates) {
       mocks.callbackCandidate = callbackCandidate;
@@ -129,7 +129,7 @@ test.each(providers)(
 
       expect(mocks.socialSignIn).toHaveBeenCalledWith(
         {
-          callbackURL: "",
+          callbackURL: "/dashboard",
           provider,
         },
         { onError: expect.any(Function) },
@@ -150,19 +150,19 @@ test("disables both provider buttons while sign-in is pending", async () => {
   );
 
   render(<SignInPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Continue with Google" }));
+  fireEvent.click(screen.getByRole("button", { name: "Login with Google" }));
 
   expect(
-    screen.getByRole("button", { name: "Continue with Google" }),
+    screen.getByRole("button", { name: "Login with Google" }),
   ).toBeDisabled();
   expect(
-    screen.getByRole("button", { name: "Continue with Apple" }),
+    screen.getByRole("button", { name: "Login with Apple" }),
   ).toBeDisabled();
 
   resolveSignIn({ data: null, error: null });
   await waitFor(() =>
     expect(
-      screen.getByRole("button", { name: "Continue with Google" }),
+      screen.getByRole("button", { name: "Login with Google" }),
     ).toBeEnabled(),
   );
 });
@@ -174,7 +174,7 @@ test("renders a provider error from Better Auth", async () => {
   });
 
   render(<SignInPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Continue with Google" }));
+  fireEvent.click(screen.getByRole("button", { name: "Login with Google" }));
 
   expect(
     await screen.findByText("Unable to sign in. Please try again."),
@@ -185,7 +185,7 @@ test("renders a rejected provider request", async () => {
   mocks.socialSignIn.mockRejectedValueOnce(new Error("network unavailable"));
 
   render(<SignInPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Continue with Apple" }));
+  fireEvent.click(screen.getByRole("button", { name: "Login with Apple" }));
 
   expect(
     await screen.findByText("Unable to sign in. Please try again."),

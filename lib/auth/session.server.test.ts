@@ -109,6 +109,6 @@ test("requireSession rejects unsafe request URL metadata", async () => {
   mocks.getSession.mockResolvedValue(null);
 
   await expect(requireSession()).rejects.toMatchObject({
-    destination: "/sign-in?callbackUrl=",
+    destination: "/sign-in?callbackUrl=%2Fdashboard",
   });
 });

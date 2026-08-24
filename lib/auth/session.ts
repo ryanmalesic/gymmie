@@ -1,5 +1,5 @@
 export const CALLBACK_PATH_HEADER = "x-callback-path";
-export const DEFAULT_CALLBACK_PATH = "";
+export const DEFAULT_CALLBACK_PATH = "/dashboard";
 const MAX_CALLBACK_URL_LENGTH = 2048;
 
 export function callbackPath(

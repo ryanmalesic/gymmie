@@ -29,7 +29,7 @@ import {
 import {
   type UserTableFeatures,
   userTableFeatures,
-} from "@/components/users/columns";
+} from "@/components/users/table/columns";
 import { type User } from "@/lib/users/schema";
 
 type UserTableProps = {

@@ -1,8 +1,8 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
 
-import { userColumns } from "@/components/users/columns";
 import { UserTable } from "@/components/users/table";
+import { userColumns } from "@/components/users/table/columns";
 
 const users = [
   { email: "zoe@example.com", id: "usr_1", name: "Zoe" },
