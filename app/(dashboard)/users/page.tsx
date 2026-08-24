@@ -1,7 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 import { UsersPage } from "@/components/users";
-import { requireSession } from "@/lib/auth/session.server";
 import { makeQueryClient } from "@/lib/query/client";
 import { fetchUsers } from "@/lib/users/actions";
 import { userKeys } from "@/lib/users/keys";
@@ -9,7 +8,6 @@ import { userKeys } from "@/lib/users/keys";
 export const dynamic = "force-dynamic";
 
 export default async function UsersRoute() {
-  await requireSession();
   const queryClient = makeQueryClient();
   const users = await fetchUsers();
 

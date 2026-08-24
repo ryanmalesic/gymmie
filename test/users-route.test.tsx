@@ -2,8 +2,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 
+import UsersLoading from "@/app/(dashboard)/users/loading";
 import UsersRoute from "@/app/(dashboard)/users/page";
-import { requireSession } from "@/lib/auth/session.server";
 import { makeQueryClient } from "@/lib/query/client";
 import { fetchUsers } from "@/lib/users/actions";
 
@@ -12,16 +12,12 @@ vi.mock("@/components/users", () => ({
     <p>Users page ({initialState.ok ? "success" : "failure"})</p>
   ),
 }));
-vi.mock("@/lib/auth/session.server", () => ({ requireSession: vi.fn() }));
 vi.mock("@/lib/users/actions", () => ({ fetchUsers: vi.fn() }));
 
 const fetchUsersMock = vi.mocked(fetchUsers);
-const requireSessionMock = vi.mocked(requireSession);
 
 beforeEach(() => {
   fetchUsersMock.mockReset();
-  requireSessionMock.mockReset();
-  requireSessionMock.mockResolvedValue({} as never);
 });
 
 test("renders an initial user-list failure and logs it", async () => {
@@ -66,7 +62,12 @@ test("loads users before rendering the client page", async () => {
     </QueryClientProvider>,
   );
 
-  expect(requireSessionMock).toHaveBeenCalledOnce();
   expect(fetchUsersMock).toHaveBeenCalledOnce();
   expect(screen.getByText("Users page (success)")).toBeInTheDocument();
+});
+
+test("shows a people loading status while users are fetching", () => {
+  render(<UsersLoading />);
+
+  expect(screen.getByRole("status", { name: "Loading people" })).toBeVisible();
 });

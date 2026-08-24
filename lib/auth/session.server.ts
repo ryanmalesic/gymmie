@@ -1,6 +1,7 @@
 import "server-only";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { auth, type Session } from "@/lib/auth";
 import {
@@ -13,12 +14,12 @@ import {
 type RequestHeaders = Awaited<ReturnType<typeof headers>>;
 
 export async function getSession(): Promise<null | Session> {
-  return getSessionFromHeaders(await headers());
+  return getCachedSession();
 }
 
 export async function requireSession(callbackPath?: string): Promise<Session> {
   const requestHeaders = await headers();
-  const session = await getSessionFromHeaders(requestHeaders);
+  const session = await getCachedSession();
 
   if (session) {
     return session;
@@ -47,11 +48,9 @@ function getRequestCallbackUrl(
   return requestPath(requestUrl);
 }
 
-function getSessionFromHeaders(
-  requestHeaders: RequestHeaders,
-): Promise<null | Session> {
-  return auth.api.getSession({ headers: requestHeaders });
-}
+const getCachedSession = cache(async (): Promise<null | Session> => {
+  return auth.api.getSession({ headers: await headers() });
+});
 
 function redirectToSignIn(callbackUrl: string): never {
   return redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
