@@ -1,7 +1,7 @@
 import { Client } from "pg";
 
 export async function resetDatabase() {
-  assertCiIsSet();
+  assertTestDatabase();
 
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
@@ -34,8 +34,10 @@ export async function resetDatabase() {
   }
 }
 
-function assertCiIsSet() {
-  if (!process.env.CI) {
-    throw new Error("resetDatabase() can only run when CI is set.");
+function assertTestDatabase() {
+  if (process.env.GYMMIE_TEST_DATABASE !== "true") {
+    throw new Error(
+      "resetDatabase() requires GYMMIE_TEST_DATABASE=true for an isolated test database.",
+    );
   }
 }

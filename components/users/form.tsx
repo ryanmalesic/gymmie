@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,41 +12,48 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { type ActionResult } from "@/lib/action";
-import {
-  type CreateUserMutationError,
-  useCreateUserMutation,
-} from "@/lib/users/mutations";
-import { type ListedUser } from "@/lib/users/queries";
+import { isActionFailure } from "@/lib/action";
+import { useCreateUserMutation } from "@/lib/users/mutations";
 import { type UserInput, userInputSchema } from "@/lib/users/schema";
 
 const FormDevtools = lazy(() =>
-  import("@tanstack/react-devtools").then((m) => ({
-    default: m.TanStackDevtools,
+  import("@tanstack/react-devtools").then((module) => ({
+    default: module.TanStackDevtools,
   })),
 );
 
-export function UserForm({
-  action,
-}: {
-  action: (input: UserInput) => Promise<ActionResult<ListedUser, UserInput>>;
-}) {
-  const mutation = useCreateUserMutation(action);
+export function UserForm() {
+  const mutation = useCreateUserMutation();
+  const [submissionError, setSubmissionError] = useState<Error | null>(null);
 
   const form = useForm({
     defaultValues: { email: "", name: "" },
     onSubmit: async ({ createValidationError, value }) => {
+      setSubmissionError(null);
+
       try {
         await mutation.mutateAsync(value);
         form.reset();
-      } catch (thrown: unknown) {
-        const failure = thrown as CreateUserMutationError;
+      } catch (error: unknown) {
+        if (!isActionFailure<UserInput>(error)) {
+          setSubmissionError(
+            new Error("Unable to create user. Please try again.", {
+              cause: error,
+            }),
+          );
+          return;
+        }
+
+        const formMessage = error.error.form?.join(", ");
+        setSubmissionError(
+          formMessage ? new Error(formMessage, { cause: error }) : null,
+        );
+
         return createValidationError({
           fields: {
-            email: failure.error.email?.join(", "),
-            name: failure.error.name?.join(", "),
+            email: error.error.email?.join(", "),
+            name: error.error.name?.join(", "),
           },
-          form: failure.error.form?.join(", "),
         });
       }
     },
@@ -64,9 +71,9 @@ export function UserForm({
       <form
         className="flex flex-col gap-4"
         noValidate
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           form.handleSubmit();
         }}
       >
@@ -83,13 +90,15 @@ export function UserForm({
                   id="name"
                   name="name"
                   onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(event) => field.handleChange(event.target.value)}
                   required
                   type="text"
                   value={field.value}
                 />
                 <FieldError
-                  errors={field.errors.map((e) => ({ message: e.message }))}
+                  errors={field.errors.map((error) => ({
+                    message: error.message,
+                  }))}
                   id="name-error"
                 />
               </Field>
@@ -107,19 +116,22 @@ export function UserForm({
                   id="email"
                   name="email"
                   onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(event) => field.handleChange(event.target.value)}
                   required
                   type="email"
                   value={field.value}
                 />
                 <FieldError
-                  errors={field.errors.map((e) => ({ message: e.message }))}
+                  errors={field.errors.map((error) => ({
+                    message: error.message,
+                  }))}
                   id="email-error"
                 />
               </Field>
             )}
           </form.Field>
         </FieldGroup>
+        <FieldError>{submissionError?.message}</FieldError>
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting] as const}
         >

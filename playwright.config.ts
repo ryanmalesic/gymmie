@@ -10,6 +10,8 @@ const betterAuthSecret =
   "test-only-better-auth-secret-32-characters";
 process.env.BETTER_AUTH_SECRET ??= betterAuthSecret;
 
+const baseUrl = "http://localhost:3000";
+
 const config = defineConfig({
   forbidOnly: Boolean(process.env.CI),
   fullyParallel: true,
@@ -24,18 +26,18 @@ const config = defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.test.ts",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: baseUrl,
     trace: "on-first-retry",
   },
   webServer: {
     command: "pnpm dev",
     env: {
       BETTER_AUTH_SECRET: betterAuthSecret,
-      BETTER_AUTH_URL: "http://localhost:3000",
+      BETTER_AUTH_URL: baseUrl,
       DATABASE_URL: databaseUrl,
     },
     reuseExistingServer: !process.env.CI,
-    url: "http://localhost:3000",
+    url: baseUrl,
   },
   workers: process.env.CI ? 1 : undefined,
 });

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { fromPrismaError } from "@/lib/action";
+import { fromActionError } from "@/lib/action";
 import { Prisma } from "@/lib/prisma/generated/client";
 
 function knownRequestError(code: string) {
@@ -10,12 +10,12 @@ function knownRequestError(code: string) {
   });
 }
 
-test("maps a known Prisma code to the matching field error", () => {
+test("maps an explicitly handled Prisma code", () => {
   expect(
-    fromPrismaError<{ email: string }>(
+    fromActionError<{ email: string }>(
       knownRequestError("P2002"),
-      { form: ["Unable to create user"] },
       { P2002: { email: ["Email is already taken"] } },
+      { form: ["Unable to save user"] },
     ),
   ).toEqual({
     error: { email: ["Email is already taken"] },
@@ -23,20 +23,28 @@ test("maps a known Prisma code to the matching field error", () => {
   });
 });
 
-test("uses the fallback for an unmapped Prisma code", () => {
+test("maps an unmapped Prisma code to the fallback", () => {
   expect(
-    fromPrismaError(knownRequestError("P2025"), {
-      form: ["Unable to load users"],
-    }),
+    fromActionError(
+      knownRequestError("P2025"),
+      { P2024: { form: ["Unable to load users"] } },
+      { form: ["Unable to load users"] },
+    ),
   ).toEqual({
     error: { form: ["Unable to load users"] },
     ok: false,
   });
 });
 
-test("rethrows errors that are not known Prisma request errors", () => {
-  const error = new Error("connection refused");
-  expect(() =>
-    fromPrismaError(error, { form: ["Unable to load users"] }),
-  ).toThrow(error);
+test("maps non-Prisma errors to the fallback", () => {
+  expect(
+    fromActionError(
+      new Error("connection refused"),
+      { P2024: { form: ["Unable to load users"] } },
+      { form: ["Unable to load users"] },
+    ),
+  ).toEqual({
+    error: { form: ["Unable to load users"] },
+    ok: false,
+  });
 });

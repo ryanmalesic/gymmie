@@ -8,7 +8,7 @@ import {
   tableFeatures,
 } from "@tanstack/react-table";
 
-export const features = tableFeatures({
+export const userTableFeatures = tableFeatures({
   columnFilteringFeature,
   filteredRowModel: createFilteredRowModel(),
   filterFns: { includesString: filterFn_includesString },
@@ -17,4 +17,4 @@ export const features = tableFeatures({
   sortFns: { text: sortFn_text },
 });
 
-export type UserTableFeatures = typeof features;
+export type UserTableFeatures = typeof userTableFeatures;

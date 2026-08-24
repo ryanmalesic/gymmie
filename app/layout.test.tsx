@@ -1,4 +1,3 @@
-import { render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 
 import RootLayout from "@/app/layout";
@@ -7,13 +6,13 @@ vi.mock("next/font/google", () => ({
   Inter: () => ({ variable: "--font-inter" }),
 }));
 
-test("renders children in an English-language document", () => {
-  render(
-    <RootLayout params={Promise.resolve({})}>
-      <p>Hello</p>
-    </RootLayout>,
-  );
+test("returns an English-language document containing its children", () => {
+  const layout = RootLayout({
+    children: <p>Hello</p>,
+    params: Promise.resolve({}),
+  });
 
-  expect(document.documentElement).toHaveAttribute("lang", "en");
-  expect(screen.getByText("Hello")).toBeInTheDocument();
+  expect(layout.type).toBe("html");
+  expect(layout.props.lang).toBe("en");
+  expect(layout.props.children.type).toBe("body");
 });

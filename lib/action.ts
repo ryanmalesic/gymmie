@@ -15,14 +15,39 @@ export type FieldErrors<T> = {
   [K in keyof T]?: string[];
 };
 
-export function fromPrismaError<I = object>(
+export function fromActionError<I = object>(
   error: unknown,
+  codes: Record<string, ActionError<I>>,
   fallback: ActionError<I>,
-  codes: Record<string, ActionError<I>> = {},
 ): ActionFailure<I> {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    return { error: codes[error.code] ?? fallback, ok: false };
+    const actionError = codes[error.code];
+    if (actionError) {
+      return { error: actionError, ok: false };
+    }
   }
 
-  throw error;
+  return { error: fallback, ok: false };
+}
+
+export function isActionFailure<I>(value: unknown): value is ActionFailure<I> {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as { error?: unknown; ok?: unknown };
+  return (
+    candidate.ok === false &&
+    typeof candidate.error === "object" &&
+    candidate.error !== null
+  );
+}
+
+export function reportRecoverablePrismaError(error: unknown): void {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2024"
+  ) {
+    console.error("Recoverable Prisma availability error", error);
+  }
 }

@@ -5,11 +5,11 @@ import { ArrowUpDown } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { type UserTableFeatures } from "@/components/users/data-table-features";
-import { type ListedUser } from "@/lib/users/queries";
+import { type ListedUser } from "@/lib/users/schema";
 
 const columnHelper = createColumnHelper<UserTableFeatures, ListedUser>();
 
-export const columns = columnHelper.columns([
+export const userColumns = columnHelper.columns([
   columnHelper.accessor("name", {
     header: ({ column }) => (
       <button

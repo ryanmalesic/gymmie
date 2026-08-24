@@ -10,23 +10,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { columns } from "@/components/users/columns";
-import { DataTable } from "@/components/users/data-table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { userColumns } from "@/components/users/columns";
+import { UserTable } from "@/components/users/data-table";
 import { UserForm } from "@/components/users/form";
-import { type ActionResult } from "@/lib/action";
-import { type ListedUser, useUsersQuery } from "@/lib/users/queries";
-import { type UserInput } from "@/lib/users/schema";
+import { getUserActionErrorMessage } from "@/lib/users/errors";
+import {
+  type UsersQueryInitialState,
+  useUsersQuery,
+} from "@/lib/users/queries";
 
-export function UsersPage({
-  listAction,
-  mutationAction,
-}: {
-  listAction: () => Promise<ActionResult<ListedUser[]>>;
-  mutationAction: (
-    input: UserInput,
-  ) => Promise<ActionResult<ListedUser, UserInput>>;
-}) {
-  const { data, error, isError } = useUsersQuery(listAction);
+type UsersPageProps = {
+  initialState?: UsersQueryInitialState;
+};
+
+export function UsersPage({ initialState }: UsersPageProps) {
+  const { data, error, isError, isPending } = useUsersQuery(initialState);
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
@@ -39,7 +38,7 @@ export function UsersPage({
           <CardDescription>Name and email for each person.</CardDescription>
         </CardHeader>
         <CardContent>
-          <UserForm action={mutationAction} />
+          <UserForm />
         </CardContent>
       </Card>
       <Card>
@@ -47,14 +46,40 @@ export function UsersPage({
           <CardTitle>People</CardTitle>
         </CardHeader>
         <CardContent>
-          {isError ? (
+          {isPending ? (
+            <div
+              aria-label="Loading people"
+              aria-live="polite"
+              className="space-y-3"
+              role="status"
+            >
+              <Skeleton className="h-7 w-full max-w-sm" />
+              <div className="overflow-hidden rounded-md border">
+                <div className="grid grid-cols-2 gap-4 border-b p-2">
+                  <Skeleton className="h-4" />
+                  <Skeleton className="h-4" />
+                </div>
+                {["first", "second", "third"].map((row) => (
+                  <div
+                    className="grid grid-cols-2 gap-4 border-b p-2 last:border-b-0"
+                    key={row}
+                  >
+                    <Skeleton className="h-4" />
+                    <Skeleton className="h-4" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : isError ? (
             <Alert variant="destructive">
               <AlertCircleIcon />
               <AlertTitle>Unable to load people</AlertTitle>
-              <AlertDescription>{error?.message}</AlertDescription>
+              <AlertDescription>
+                {error ? getUserActionErrorMessage(error) : null}
+              </AlertDescription>
             </Alert>
           ) : (
-            <DataTable columns={columns} data={data ?? []} />
+            <UserTable columns={userColumns} data={data ?? []} />
           )}
         </CardContent>
       </Card>
