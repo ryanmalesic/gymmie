@@ -69,5 +69,12 @@ test("loads users before rendering the client page", async () => {
 test("shows a people loading status while users are fetching", () => {
   render(<UsersLoading />);
 
+  expect(screen.getByRole("heading", { name: "Users" })).toBeVisible();
+  expect(screen.getByLabelText("Name")).toBeVisible();
+  expect(screen.getByLabelText("Email")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Add user" })).toBeVisible();
+  expect(screen.getByPlaceholderText("Filter emails...")).toBeVisible();
+  expect(screen.getByRole("columnheader", { name: /name/i })).toBeVisible();
+  expect(screen.getByRole("columnheader", { name: /email/i })).toBeVisible();
   expect(screen.getByRole("status", { name: "Loading people" })).toBeVisible();
 });

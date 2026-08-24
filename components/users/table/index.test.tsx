@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
 
-import { UserTable } from "@/components/users/table";
+import { UserTable, UserTableSkeleton } from "@/components/users/table";
 import { userColumns } from "@/components/users/table/columns";
 
 const users = [
@@ -44,4 +44,13 @@ test("sorts rows by name", () => {
 test("shows empty state when no data", () => {
   render(<UserTable columns={userColumns} data={[]} />);
   expect(screen.getByText("No users yet.")).toBeInTheDocument();
+});
+
+test("keeps filter and headers while rows are loading", () => {
+  render(<UserTableSkeleton />);
+
+  expect(screen.getByPlaceholderText("Filter emails...")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /name/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /email/i })).toBeInTheDocument();
+  expect(screen.getByRole("status", { name: "Loading people" })).toBeVisible();
 });

@@ -9,7 +9,7 @@ import {
 import { type ReactNode } from "react";
 import { afterEach, expect, test, vi } from "vitest";
 
-import { UserForm } from "@/components/users/form";
+import { UserForm, UserFormFallback } from "@/components/users/form";
 
 const mocks = vi.hoisted(() => ({ addUser: vi.fn() }));
 
@@ -33,6 +33,14 @@ afterEach(() => {
 
 test("renders name and email fields", () => {
   render(<UserForm />, { wrapper });
+
+  expect(screen.getByLabelText("Name")).toBeInTheDocument();
+  expect(screen.getByLabelText("Email")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /add user/i })).toBeInTheDocument();
+});
+
+test("renders a static add-user form while the page is loading", () => {
+  render(<UserFormFallback />);
 
   expect(screen.getByLabelText("Name")).toBeInTheDocument();
   expect(screen.getByLabelText("Email")).toBeInTheDocument();

@@ -11,9 +11,26 @@ import {
   tableFeatures,
 } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
+import { type ComponentProps } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { type User } from "@/lib/users/schema";
+
+export function UserTableColumnHeader({
+  children,
+  ...props
+}: ComponentProps<"button">) {
+  return (
+    <button
+      className={buttonVariants({ size: "xs", variant: "ghost" })}
+      type="button"
+      {...props}
+    >
+      {children}
+      <ArrowUpDown className="ml-1 size-3" />
+    </button>
+  );
+}
 
 export const userTableFeatures = tableFeatures({
   columnFilteringFeature,
@@ -29,28 +46,18 @@ const columnHelper = createColumnHelper<UserTableFeatures, User>();
 export const userColumns = columnHelper.columns([
   columnHelper.accessor("name", {
     header: ({ column }) => (
-      <button
-        className={buttonVariants({ size: "xs", variant: "ghost" })}
-        onClick={() => column.toggleSorting()}
-        type="button"
-      >
+      <UserTableColumnHeader onClick={() => column.toggleSorting()}>
         Name
-        <ArrowUpDown className="ml-1 size-3" />
-      </button>
+      </UserTableColumnHeader>
     ),
     sortFn: "text",
   }),
   columnHelper.accessor("email", {
     filterFn: "includesString",
     header: ({ column }) => (
-      <button
-        className={buttonVariants({ size: "xs", variant: "ghost" })}
-        onClick={() => column.toggleSorting()}
-        type="button"
-      >
+      <UserTableColumnHeader onClick={() => column.toggleSorting()}>
         Email
-        <ArrowUpDown className="ml-1 size-3" />
-      </button>
+      </UserTableColumnHeader>
     ),
     sortFn: "text",
   }),

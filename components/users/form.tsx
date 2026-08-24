@@ -145,3 +145,21 @@ export function UserForm() {
     </>
   );
 }
+
+export function UserFormFallback() {
+  return (
+    <div className="flex flex-col gap-4">
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="user-name">Name</FieldLabel>
+          <Input id="user-name" readOnly type="text" />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="user-email">Email</FieldLabel>
+          <Input id="user-email" readOnly type="email" />
+        </Field>
+      </FieldGroup>
+      <Button type="button">Add user</Button>
+    </div>
+  );
+}

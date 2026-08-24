@@ -27,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  UserTableColumnHeader,
   type UserTableFeatures,
   userTableFeatures,
 } from "@/components/users/table/columns";
@@ -109,25 +110,39 @@ export function UserTableSkeleton() {
     <div
       aria-label="Loading people"
       aria-live="polite"
-      className="space-y-3"
+      className="flex flex-col gap-4"
       role="status"
     >
-      <Skeleton className="h-7 w-full max-w-sm" />
-      <div className="overflow-hidden rounded-md border">
-        <div className="grid grid-cols-2 gap-4 border-b p-2">
-          <Skeleton className="h-4" />
-          <Skeleton className="h-4" />
-        </div>
-        {["first", "second", "third"].map((row) => (
-          <div
-            className="grid grid-cols-2 gap-4 border-b p-2 last:border-b-0"
-            key={row}
-          >
-            <Skeleton className="h-4" />
-            <Skeleton className="h-4" />
-          </div>
-        ))}
-      </div>
+      <Input
+        className="max-w-sm"
+        placeholder="Filter emails..."
+        readOnly
+        tabIndex={-1}
+      />
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>
+              <UserTableColumnHeader tabIndex={-1}>Name</UserTableColumnHeader>
+            </TableHead>
+            <TableHead>
+              <UserTableColumnHeader tabIndex={-1}>Email</UserTableColumnHeader>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {["first", "second", "third"].map((row) => (
+            <TableRow key={row}>
+              <TableCell>
+                <Skeleton className="h-4 w-24" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-40" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
