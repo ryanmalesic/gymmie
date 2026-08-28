@@ -1,0 +1,17 @@
+import "server-only";
+
+import * as createUser from "@/domain/users/commands/create.command";
+import * as deleteUser from "@/domain/users/commands/delete.command";
+import * as listUsers from "@/domain/users/commands/list.command";
+import * as readUser from "@/domain/users/commands/read.command";
+import * as updateUser from "@/domain/users/commands/update.command";
+
+export const userCommands = {
+  createUser,
+  deleteUser,
+  listUsers,
+  readUser,
+  updateUser,
+} as const;
+
+export type UserCommandName = keyof typeof userCommands;

@@ -1,5 +1,6 @@
 allowBuilds:
   "@prisma/engines": true
+  esbuild: true
   prisma: true
   prisma-zod-generator: true
   sharp: false

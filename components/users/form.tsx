@@ -12,13 +12,8 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { fromError } from "@/lib/action";
-import { useCreateUserMutation } from "@/lib/users/mutations";
-import {
-  type CreateUser,
-  createUserFailure,
-  createUserSchema,
-} from "@/lib/users/schema";
+import { createUserSchema } from "@/domain/users/schema";
+import { type MutationError, useCreateUserMutation } from "@/hooks/users";
 
 const FormDevtools = lazy(() =>
   import("@tanstack/react-devtools").then((module) => ({
@@ -39,14 +34,14 @@ export function UserForm() {
         await mutation.mutateAsync(value);
         form.reset();
       } catch (error: unknown) {
-        const failure = fromError<CreateUser>(error, {}, createUserFailure);
+        const failure = error as MutationError;
 
-        setFormError(failure.error.form?.join(", ") ?? null);
+        setFormError(failure?.error ?? "Unable to create user");
 
         return createValidationError({
           fields: {
-            email: failure.error.email?.join(", "),
-            name: failure.error.name?.join(", "),
+            email: failure?.fieldErrors?.email?.join(", "),
+            name: failure?.fieldErrors?.name?.join(", "),
           },
         });
       }

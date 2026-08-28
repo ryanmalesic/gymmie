@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { createTestSession, sessionCookieName } from "@/test/auth-helper";
+import { createTestSession, sessionCookieName } from "@/test/auth";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {

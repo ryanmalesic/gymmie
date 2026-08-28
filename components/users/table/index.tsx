@@ -31,7 +31,7 @@ import {
   type UserTableFeatures,
   userTableFeatures,
 } from "@/components/users/table/columns";
-import { type User } from "@/lib/users/schema";
+import { type User } from "@/domain/users/schema";
 
 type UserTableProps = {
   columns: ColumnDef<UserTableFeatures, User>[];

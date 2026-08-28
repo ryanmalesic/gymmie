@@ -1,0 +1,38 @@
+name: openapi
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  contract-compatibility:
+    name: contract-compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch base OpenAPI spec from target branch or previous commit
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TARGET_BRANCH="${{ github.base_ref }}"
+            git fetch origin "${TARGET_BRANCH}" || true
+            git show "origin/${TARGET_BRANCH}:lib/openapi.yaml" > base-openapi.yaml || cp lib/openapi.yaml base-openapi.yaml
+          else
+            git show "HEAD~1:lib/openapi.yaml" > base-openapi.yaml || cp lib/openapi.yaml base-openapi.yaml
+          fi
+      - uses: jdx/mise-action@v4
+      - run: just install
+      - name: Generate current OpenAPI spec
+        run: pnpm openapi
+      - name: Run oasdiff breaking change check
+        uses: oasdiff/oasdiff-action/breaking@main
+        with:
+          base: base-openapi.yaml
+          revision: lib/openapi.yaml

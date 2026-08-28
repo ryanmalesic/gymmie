@@ -35,7 +35,7 @@ ensure_test_db() {
       fi
     else
       if pnpm exec prisma dev ls 2>/dev/null | grep -q "${name}"; then
-        pnpm exec prisma dev rm "${name}"
+        pnpm exec prisma dev rm "${name}" --force
       fi
       pnpm exec prisma dev --name "${name}" --detach
       if ! wait_for_db 120; then

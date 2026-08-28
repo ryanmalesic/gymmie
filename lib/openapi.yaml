@@ -1,0 +1,561 @@
+info:
+  description: Auto-generated from Domain Commands + Prisma Zod Schemas
+  title: App RPC Command API
+  version: 2026.08.27
+openapi: 3.1.0
+servers:
+  - url: /
+components:
+  schemas:
+    CreateUserResponse:
+      type: object
+      properties:
+        createdAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        email:
+          type: string
+          format: email
+        id:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+      required:
+        - createdAt
+        - email
+        - id
+        - name
+      additionalProperties: false
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        error:
+          type: string
+        fieldErrors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        success:
+          type: boolean
+          enum:
+            - false
+      required:
+        - code
+        - error
+        - success
+      additionalProperties: false
+    ErrorCode:
+      type: string
+      enum:
+        - UNAUTHENTICATED
+        - FORBIDDEN
+        - NOT_FOUND
+        - SCHEMA_VALIDATION_FAILED
+        - CONFLICT
+        - BAD_REQUEST
+        - INTERNAL_ERROR
+    CreateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+      required:
+        - email
+        - name
+      additionalProperties: false
+    DeleteUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+        success:
+          type: boolean
+      required:
+        - id
+        - success
+      additionalProperties: false
+    DeleteUserRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: Target user ID to delete
+      required:
+        - id
+      additionalProperties: false
+    ListUsersResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalCount:
+          type: integer
+          minimum: 0
+        users:
+          type: array
+          items:
+            type: object
+            properties:
+              createdAt:
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+              email:
+                type: string
+                format: email
+              id:
+                type: string
+              name:
+                type: string
+                minLength: 1
+                maxLength: 80
+            required:
+              - createdAt
+              - email
+              - id
+              - name
+            additionalProperties: false
+      required:
+        - page
+        - pageSize
+        - totalCount
+        - users
+      additionalProperties: false
+    ListUsersRequest:
+      type: object
+      properties:
+        createdAfter:
+          type: string
+          description: ISO 8601 UTC Timestamp
+          example: '2026-08-27T21:57:51.000Z'
+          format: date-time
+        page:
+          type: integer
+          example: 20
+          maximum: 1000
+          minimum: 1
+        pageSize:
+          type: integer
+          example: 20
+          maximum: 100
+          minimum: 1
+      additionalProperties: false
+    ReadUserResponse:
+      type: object
+      properties:
+        createdAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        email:
+          type: string
+          format: email
+        id:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        updatedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - createdAt
+        - email
+        - id
+        - name
+        - updatedAt
+      additionalProperties: false
+    ReadUserRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: Target user ID
+      required:
+        - id
+      additionalProperties: false
+    UpdateUserResponse:
+      type: object
+      properties:
+        createdAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        email:
+          type: string
+          format: email
+        id:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        updatedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - createdAt
+        - email
+        - id
+        - name
+        - updatedAt
+      additionalProperties: false
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        id:
+          type: string
+          minLength: 1
+          description: Target user ID
+      required:
+        - name
+        - id
+      additionalProperties: false
+  parameters: {}
+paths:
+  /api/rpc/2026-08-27/createUser:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-27] Inserts a new user record. Requires active
+        session.
+      security:
+        - bearerAuth: []
+      summary: Create a new user
+      tags:
+        - Users
+      requestBody:
+        description: New user payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: Created user record
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/deleteUser:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-27] Deletes a user record. Allowed for account
+        owner.
+      security:
+        - bearerAuth: []
+      summary: Delete user
+      tags:
+        - Users
+      requestBody:
+        description: Target user ID
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteUserRequest'
+      responses:
+        '200':
+          description: Deletion status
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/listUsers:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-27] Queries users with pagination and date
+        filters.
+      security:
+        - bearerAuth: []
+      summary: List paginated users
+      tags:
+        - Users
+      requestBody:
+        description: Pagination and filters
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUsersRequest'
+      responses:
+        '200':
+          description: Paginated user collection
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUsersResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/readUser:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-27] Fetches user details. Accessible by
+        authenticated users.
+      security:
+        - bearerAuth: []
+      summary: Fetch user by ID
+      tags:
+        - Users
+      requestBody:
+        description: Target user ID
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadUserRequest'
+      responses:
+        '200':
+          description: User record
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/updateUser:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-27] Updates user mutable fields. Allowed for
+        account owner.
+      security:
+        - bearerAuth: []
+      summary: Update user profile
+      tags:
+        - Users
+      requestBody:
+        description: User ID and mutable fields
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Updated user record
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+webhooks: {}

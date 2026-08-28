@@ -61,3 +61,8 @@ e2e-install:
 # Open the Playwright UI
 e2e-ui:
     bash scripts/e2e.sh --ui
+
+# Export OpenAPI spec and check contracts
+openapi:
+    pnpm openapi
+

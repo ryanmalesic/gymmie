@@ -1,25 +1,37 @@
 generator client {
-  output   = "../lib/prisma/generated"
+  output   = "../lib/generated/prisma"
   provider = "prisma-client"
 }
 
 generator zod {
-  provider = "prisma-zod-generator"
-  output   = "../lib/prisma/generated/zod"
+  provider                         = "zod-prisma-types"
+  output                           = "../lib/generated/zod"
+  prismaClientPath                 = "../prisma"
+  useMultipleFiles                 = false
+  createInputTypes                 = true
+  createModelTypes                 = true
+  createOptionalDefaultValuesTypes = true
+  createRelationValuesTypes        = false
+  createPartialTypes               = true
+  useDefaultValidators             = true
+  validateWhereUniqueInput         = true
+  coerceDate                       = true
+  writeNullishInModelTypes         = false
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+/// @zod.import(["import { HttpsUrl } from '@/lib/zod'"])
 model User {
   id            String   @id @default(dbgenerated("id()"))
-  /// @zod.trim().min(1, "Name is required").max(80, "Name is too long")
+  /// @zod.string.trim().min(1, { message: "Name is required" }).max(80, { message: "Name is too long" })
   name          String
-  /// @zod.trim().toLowerCase().min(1, { abort: true, error: "Email is required" }).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Email is invalid")
+  /// @zod.string.trim().toLowerCase().email({ message: "Email is invalid" })
   email         String
   emailVerified Boolean
-  /// @zod.trim().toLowerCase().regex(/^https:\/\/[^\s]+$/, "Image is invalid")
+  /// @zod.import(["import { HttpsUrl } from '@/lib/zod'"]).custom.use(HttpsUrl.nullish())
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

@@ -1,6 +1,6 @@
 import { type BrowserContext, expect, test } from "@playwright/test";
 
-import { createTestSession, sessionCookieName } from "@/test/auth-helper";
+import { createTestSession, sessionCookieName } from "@/test/auth";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -70,10 +70,10 @@ test("keeps the users query and form usable under the root provider", async ({
   await page.goto("/users");
 
   await expect(
-    page.locator('[data-slot="card-title"]', { hasText: "People" }),
+    page.locator('[data-slot="card-title"]', { hasText: "People" }).first(),
   ).toBeVisible();
-  await page.getByLabel("Name").fill(createdName);
-  await page.getByLabel("Email").fill(createdEmail);
+  await page.locator("input#name").fill(createdName);
+  await page.locator("input#email").fill(createdEmail);
   const addUserButton = page.getByRole("button", { name: "Add user" });
   await expect(addUserButton).toBeEnabled();
   await addUserButton.click();

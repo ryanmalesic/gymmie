@@ -44,7 +44,7 @@ const config = defineConfig({
     reuseExistingServer: !process.env.CI,
     url: baseUrl,
   },
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
 });
 
 export default config;

@@ -7,12 +7,12 @@ import { UserForm } from "@/components/users/form";
 import { UserTable, UserTableSkeleton } from "@/components/users/table";
 import { userColumns } from "@/components/users/table/columns";
 import { UsersView } from "@/components/users/view";
-import { type ActionResult } from "@/lib/action";
-import { useUsersQuery } from "@/lib/users/queries";
-import { type User } from "@/lib/users/schema";
+import { type User } from "@/domain/users/schema";
+import { useUsersQuery } from "@/hooks/users";
+import { type ActionResult } from "@/lib/commands/types";
 
 type UsersPageProps = {
-  initialState?: ActionResult<User[]>;
+  initialState?: ActionResult<{ users: User[] }>;
 };
 
 export function UsersPage({ initialState }: UsersPageProps) {
@@ -28,7 +28,7 @@ export function UsersPage({ initialState }: UsersPageProps) {
           <Alert variant="destructive">
             <AlertCircleIcon />
             <AlertTitle>Unable to load people</AlertTitle>
-            <AlertDescription>{error?.error.form?.join(" ")}</AlertDescription>
+            <AlertDescription>{error?.message}</AlertDescription>
           </Alert>
         ) : (
           <UserTable columns={userColumns} data={data ?? []} />

@@ -48,7 +48,9 @@ export function DashboardSidebar({ user }: { user: DashboardUser }) {
             },
             {
               icon: <UsersIcon />,
-              isActive: pathname === "/users" || pathname.startsWith("/users/"),
+              isActive:
+                pathname === "/users" ||
+                Boolean(pathname?.startsWith("/users/")),
               title: "Users",
               url: "/users",
             },

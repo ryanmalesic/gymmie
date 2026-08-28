@@ -53,8 +53,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma generated client
-/lib/prisma/generated/
+# generated
+/lib/generated/
 
 # desloppify local scan state
 .desloppify/

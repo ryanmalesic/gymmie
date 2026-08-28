@@ -1,5 +1,10 @@
 import "@testing-library/jest-dom/vitest";
-import { vi } from "vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
+
+process.env.BETTER_AUTH_SECRET ??= "test-only-better-auth-secret-32-characters";
+process.env.BETTER_AUTH_URL ??= "http://localhost:3000";
+process.env.DATABASE_URL ??= "postgres://postgres:postgres@localhost:5432/test";
 
 vi.mock("server-only", () => ({}));
 
@@ -28,4 +33,8 @@ Object.defineProperty(window, "matchMedia", {
     removeListener: vi.fn(),
   })),
   writable: true,
+});
+
+afterEach(() => {
+  cleanup();
 });

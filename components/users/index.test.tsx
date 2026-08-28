@@ -6,11 +6,11 @@ import { afterEach, expect, test, vi } from "vitest";
 import { UsersPage } from "@/components/users";
 
 const mocks = vi.hoisted(() => ({
-  addUser: vi.fn(),
-  fetchUsers: vi.fn(),
+  createUserAction: vi.fn(),
+  listUsersAction: vi.fn(),
 }));
 
-vi.mock("@/lib/users/actions", () => mocks);
+vi.mock("@/app/actions/users", () => mocks);
 
 function wrapper({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient({
@@ -27,13 +27,14 @@ afterEach(() => {
 });
 
 test("keeps the list loading while refetching an initial failure", () => {
-  mocks.fetchUsers.mockImplementation(() => new Promise(() => {}));
+  mocks.listUsersAction.mockImplementation(() => new Promise(() => {}));
 
   render(
     <UsersPage
       initialState={{
-        error: { form: ["Unable to load users"] },
-        ok: false,
+        code: "INTERNAL_ERROR",
+        error: "Unable to load users",
+        success: false,
       }}
     />,
     { wrapper },
@@ -44,13 +45,14 @@ test("keeps the list loading while refetching an initial failure", () => {
     "Loading people",
   );
   expect(screen.queryByText("No users yet.")).not.toBeInTheDocument();
-  expect(mocks.fetchUsers).toHaveBeenCalledOnce();
+  expect(mocks.listUsersAction).toHaveBeenCalledOnce();
 });
 
 test("renders the user-list failure state", async () => {
-  mocks.fetchUsers.mockResolvedValue({
-    error: { form: ["Unable to load users"] },
-    ok: false,
+  mocks.listUsersAction.mockResolvedValue({
+    code: "INTERNAL_ERROR",
+    error: "Unable to load users",
+    success: false,
   });
 
   render(<UsersPage />, { wrapper });

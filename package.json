@@ -15,12 +15,16 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:integration": "bash scripts/test-integration.sh",
+    "test:e2e": "bash scripts/e2e.sh",
     "e2e": "bash scripts/e2e.sh",
     "e2e:ui": "bash scripts/e2e.sh --ui",
+    "openapi": "NODE_OPTIONS='--conditions=react-server' tsx scripts/openapi.ts lib/openapi.yaml",
+    "openapi:export": "NODE_OPTIONS='--conditions=react-server' tsx scripts/openapi.ts lib/openapi.yaml",
     "postinstall": "prisma generate",
     "prepare": "husky"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^9.1.0",
     "@base-ui/react": "^1.7.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
@@ -34,6 +38,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "jose": "^6.2.10",
+    "js-yaml": "^5.4.1",
     "lucide-react": "^1.33.0",
     "next": "16.3.1",
     "react": "19.2.8",
@@ -54,6 +59,7 @@
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
@@ -75,8 +81,10 @@
     "prisma-zod-generator": "^3.3.0",
     "shadcn": "^4.19.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "zod-prisma-types": "^3.3.11"
   },
   "packageManager": "pnpm@11.0.8"
 }

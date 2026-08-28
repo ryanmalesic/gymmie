@@ -1,7 +1,8 @@
 import "server-only";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
-import { PrismaClient } from "@/lib/prisma/generated/client";
+import { PrismaClient } from "@/lib/generated/prisma/client";
 
 const globalForPrisma = globalThis as { prisma?: PrismaClient };
 
@@ -19,7 +20,17 @@ export function getPrisma(): PrismaClient {
 }
 
 function createPrisma(): PrismaClient {
+  const pool = new Pool({
+    connectionString: databaseUrl(),
+    idleTimeoutMillis: 10000,
+    max: 10,
+  });
+
+  pool.on("error", () => {
+    // Ignore pool client errors on background idle reconnection
+  });
+
   return new PrismaClient({
-    adapter: new PrismaPg({ connectionString: databaseUrl() }),
+    adapter: new PrismaPg(pool),
   });
 }

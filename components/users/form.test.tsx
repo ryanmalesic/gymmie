@@ -11,10 +11,10 @@ import { afterEach, expect, test, vi } from "vitest";
 
 import { UserForm, UserFormFallback } from "@/components/users/form";
 
-const mocks = vi.hoisted(() => ({ addUser: vi.fn() }));
+const mocks = vi.hoisted(() => ({ createUserAction: vi.fn() }));
 
-vi.mock("@/lib/users/actions", () => ({
-  addUser: mocks.addUser,
+vi.mock("@/app/actions/users", () => ({
+  createUserAction: mocks.createUserAction,
 }));
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -28,7 +28,7 @@ function wrapper({ children }: { children: ReactNode }) {
 
 afterEach(() => {
   cleanup();
-  mocks.addUser.mockReset();
+  mocks.createUserAction.mockReset();
 });
 
 test("renders name and email fields", () => {
@@ -48,10 +48,11 @@ test("renders a static add-user form while the page is loading", () => {
 });
 
 test("shows server-returned errors after submit", async () => {
-  mocks.addUser.mockResolvedValue({
-    error: { email: ["Email is already taken"] },
-    ok: false,
-    values: { email: "ada@example.com", name: "Ada" },
+  mocks.createUserAction.mockResolvedValue({
+    code: "CONFLICT",
+    error: "User already exists",
+    fieldErrors: { email: ["Email is already taken"] },
+    success: false,
   });
 
   render(<UserForm />, { wrapper });
@@ -63,9 +64,14 @@ test("shows server-returned errors after submit", async () => {
 });
 
 test("resets form after successful submission", async () => {
-  mocks.addUser.mockResolvedValue({
-    data: { email: "ada@example.com", id: "usr_1", name: "Ada" },
-    ok: true,
+  mocks.createUserAction.mockResolvedValue({
+    data: {
+      createdAt: new Date(),
+      email: "ada@example.com",
+      id: "usr_1",
+      name: "Ada",
+    },
+    success: true,
   });
 
   render(<UserForm />, { wrapper });
@@ -88,9 +94,10 @@ function submitUser(name: string, email: string) {
 }
 
 test("shows a server form error after submission", async () => {
-  mocks.addUser.mockResolvedValue({
-    error: { form: ["Unable to create user"] },
-    ok: false,
+  mocks.createUserAction.mockResolvedValue({
+    code: "INTERNAL_ERROR",
+    error: "Unable to create user",
+    success: false,
   });
 
   render(<UserForm />, { wrapper });
@@ -100,7 +107,7 @@ test("shows a server form error after submission", async () => {
 });
 
 test("shows a safe message when submission rejects unexpectedly", async () => {
-  mocks.addUser.mockRejectedValue(new Error("database unavailable"));
+  mocks.createUserAction.mockRejectedValue(new Error("database unavailable"));
 
   render(<UserForm />, { wrapper });
   submitUser("Ada", "ada@example.com");

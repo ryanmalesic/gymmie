@@ -14,7 +14,7 @@ import { ArrowUpDown } from "lucide-react";
 import { type ComponentProps } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
-import { type User } from "@/lib/users/schema";
+import { type User } from "@/domain/users/schema";
 
 export function UserTableColumnHeader({
   children,
