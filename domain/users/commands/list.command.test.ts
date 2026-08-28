@@ -5,7 +5,7 @@ import { type CommandContext } from "@/lib/commands/types";
 import { type PrismaClient } from "@/lib/generated/prisma/client";
 
 test("listUsers command spec and execution", async () => {
-  expect(spec.name).toBe("listUsers");
+  expect(spec.name).toBe("ListUsers");
 
   const users = [
     {
@@ -23,7 +23,7 @@ test("listUsers command spec and execution", async () => {
   };
 
   const context: CommandContext = {
-    commandName: "listUsers",
+    commandName: "ListUsers",
     prisma: mockPrisma as unknown as PrismaClient,
     session: {
       session: { expiresAt: new Date(), id: "s1" },

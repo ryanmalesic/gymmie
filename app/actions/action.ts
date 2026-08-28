@@ -9,8 +9,9 @@ import { type z } from "@/lib/zod";
 export function createAction<
   TReq extends z.ZodTypeAny,
   TRes extends z.ZodTypeAny,
+  TRecord = undefined,
 >(
-  commandModule: CommandModule<TReq, TRes>,
+  commandModule: CommandModule<TReq, TRes, TRecord>,
 ): (input: z.infer<TReq>) => Promise<ActionResult<z.infer<TRes>>> {
   return async function (
     rawInput: z.infer<TReq>,

@@ -132,6 +132,34 @@ const eslintConfig = defineConfig([
           patterns: [relativeImports],
         },
       ],
+      "perfectionist/sort-object-types": [
+        "error",
+        {
+          customGroups: [
+            { elementNamePattern: "^load$", groupName: "load" },
+            { elementNamePattern: "^authorize$", groupName: "authorize" },
+          ],
+          groups: ["load", "authorize", "unknown"],
+          type: "natural",
+        },
+      ],
+      "perfectionist/sort-objects": [
+        "error",
+        {
+          customGroups: [
+            { elementNamePattern: "^load$", groupName: "load" },
+            { elementNamePattern: "^authorize$", groupName: "authorize" },
+          ],
+          groups: ["load", "authorize", "unknown"],
+          type: "natural",
+          useConfigurationIf: {
+            callingFunctionNamePattern: "^defineCommand$",
+          },
+        },
+        {
+          type: "natural",
+        },
+      ],
     },
   },
   {

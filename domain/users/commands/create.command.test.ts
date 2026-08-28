@@ -5,7 +5,7 @@ import { type CommandContext } from "@/lib/commands/types";
 import { type PrismaClient } from "@/lib/generated/prisma/client";
 
 test("createUser command spec and execution", async () => {
-  expect(spec.name).toBe("createUser");
+  expect(spec.name).toBe("CreateUser");
   expect(spec.version).toBe("2026-08-27");
 
   const mockPrisma = {
@@ -20,7 +20,7 @@ test("createUser command spec and execution", async () => {
   };
 
   const context: CommandContext = {
-    commandName: "createUser",
+    commandName: "CreateUser",
     prisma: mockPrisma as unknown as PrismaClient,
     session: {
       session: { expiresAt: new Date(), id: "s1" },
@@ -35,4 +35,25 @@ test("createUser command spec and execution", async () => {
   );
   expect(result.email).toBe("ada@example.com");
   expect(mockPrisma.user.create).toHaveBeenCalledOnce();
+});
+
+test("createUser authorize requires a session user id", () => {
+  const input = { email: "ada@example.com", name: "Ada" };
+
+  expect(
+    spec.authorize(
+      { email: "ada@example.com", id: "usr_1" },
+      input,
+      undefined,
+      {} as PrismaClient,
+    ),
+  ).toBe(true);
+  expect(
+    spec.authorize(
+      { email: "ada@example.com", id: "" },
+      input,
+      undefined,
+      {} as PrismaClient,
+    ),
+  ).toBe(false);
 });

@@ -2,13 +2,12 @@ import "server-only";
 
 import { userSchema } from "@/domain/users/schema";
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
-import { WireDateTime, WireInt, z } from "@/lib/zod";
+import { WireInt, z } from "@/lib/zod";
 
 const requestSchema = z
   .object({
-    createdAfter: WireDateTime.optional(),
     page: WireInt(1, 1000).default(1),
-    pageSize: WireInt(1, 100).default(20),
+    pageSize: WireInt(1, 100, 20).default(20),
   })
   .strict()
   .openapi("ListUsersRequest");
@@ -25,10 +24,10 @@ const responseSchema = z
 
 export const spec = defineCommand({
   authorize: () => true,
-  name: "listUsers",
+  name: "ListUsers",
   spec: {
-    description: "Queries users with pagination and date filters.",
-    request: { description: "Pagination and filters", schema: requestSchema },
+    description: "Queries users with pagination.",
+    request: { description: "Pagination", schema: requestSchema },
     response: {
       description: "Paginated user collection",
       schema: responseSchema,
@@ -37,23 +36,18 @@ export const spec = defineCommand({
     summary: "List paginated users",
     tags: ["Users"],
   },
-  version: "2026-08-27",
 });
 
 const listUsers: InferCommand<typeof spec> = async (input, { prisma }) => {
   const skip = (input.page - 1) * input.pageSize;
-  const whereClause = {
-    ...(input.createdAfter && { createdAt: { gte: input.createdAfter } }),
-  };
 
   const [users, totalCount] = await Promise.all([
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
       skip,
       take: input.pageSize,
-      where: whereClause,
     }),
-    prisma.user.count({ where: whereClause }),
+    prisma.user.count(),
   ]);
 
   return {

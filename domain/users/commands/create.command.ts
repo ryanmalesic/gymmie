@@ -7,8 +7,8 @@ const requestSchema = createUserSchema;
 const responseSchema = userSchema;
 
 export const spec = defineCommand({
-  authorize: () => true,
-  name: "createUser",
+  authorize: (user) => Boolean(user.id),
+  name: "CreateUser",
   spec: {
     description: "Inserts a new user record. Requires active session.",
     request: { description: "New user payload", schema: requestSchema },
@@ -20,7 +20,6 @@ export const spec = defineCommand({
     summary: "Create a new user",
     tags: ["Users"],
   },
-  version: "2026-08-27",
 });
 
 const createUser: InferCommand<typeof spec> = async (input, { prisma }) => {

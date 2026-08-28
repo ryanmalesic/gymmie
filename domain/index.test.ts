@@ -1,27 +1,32 @@
 import { expect, test } from "vitest";
 
-import { type AllCommandName, getAllCommands, getCommand } from "@/domain";
+import { getAllCommands, getCommand } from "@/domain";
 
-test("dynamically aggregates all domain commands", async () => {
+test("aggregates all domain commands from the registries", async () => {
   const commands = await getAllCommands();
-  expect(Object.keys(commands).length).toBe(5);
-  expect(commands.createUser).toBeDefined();
-  expect(commands.readUser).toBeDefined();
-  expect(commands.updateUser).toBeDefined();
-  expect(commands.deleteUser).toBeDefined();
-  expect(commands.listUsers).toBeDefined();
+  expect(Object.keys(commands).length).toBe(11);
+  expect(commands.CreateUser).toBeDefined();
+  expect(commands.ReadUser).toBeDefined();
+  expect(commands.UpdateUser).toBeDefined();
+  expect(commands.DeleteUser).toBeDefined();
+  expect(commands.ListUsers).toBeDefined();
+  expect(commands.GetMyUser).toBeDefined();
+  expect(commands.CreateLocation).toBeDefined();
+  expect(commands.ReadLocation).toBeDefined();
+  expect(commands.UpdateLocation).toBeDefined();
+  expect(commands.DeleteLocation).toBeDefined();
+  expect(commands.ListMyLocations).toBeDefined();
 });
 
 test("gets command by name and version with version locking", async () => {
-  const commandName: AllCommandName = "createUser";
-  const createUser = await getCommand(commandName, "2026-08-27");
+  const createUser = await getCommand("CreateUser", "2026-08-27");
   expect(createUser).toBeDefined();
-  expect(createUser?.spec.name).toBe("createUser");
+  expect(createUser?.spec.name).toBe("CreateUser");
   expect(createUser?.spec.version).toBe("2026-08-27");
 
   const missing = await getCommand("nonExistent", "2026-08-27");
   expect(missing).toBeUndefined();
 
-  const wrongVersion = await getCommand("createUser", "1999-01-01");
+  const wrongVersion = await getCommand("CreateUser", "1999-01-01");
   expect(wrongVersion).toBeUndefined();
 });

@@ -5,7 +5,7 @@ import { type CommandContext } from "@/lib/commands/types";
 import { type PrismaClient } from "@/lib/generated/prisma/client";
 
 test("deleteUser command spec and execution", async () => {
-  expect(spec.name).toBe("deleteUser");
+  expect(spec.name).toBe("DeleteUser");
 
   const mockPrisma = {
     user: {
@@ -13,9 +13,20 @@ test("deleteUser command spec and execution", async () => {
     },
   };
 
-  const context: CommandContext = {
-    commandName: "deleteUser",
+  const user = {
+    createdAt: new Date(),
+    email: "ada@example.com",
+    emailVerified: false,
+    id: "usr_1",
+    image: null,
+    name: "Ada",
+    updatedAt: new Date(),
+  };
+
+  const context: CommandContext<typeof user> = {
+    commandName: "DeleteUser",
     prisma: mockPrisma as unknown as PrismaClient,
+    record: user,
     session: {
       session: { expiresAt: new Date(), id: "s1" },
       user: { email: "ada@example.com", id: "usr_1" },

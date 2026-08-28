@@ -22,8 +22,13 @@ const responseSchema = UserSchema.pick({
   .openapi("UpdateUserResponse");
 
 export const spec = defineCommand({
-  authorize: (user, input) => user.id === input.id,
-  name: "updateUser",
+  load: {
+    entity: "User",
+    fetch: (_user, input, prisma) =>
+      prisma.user.findUnique({ where: { id: input.id } }),
+  },
+  authorize: (user, _input, record) => record.id === user.id,
+  name: "UpdateUser",
   spec: {
     description: "Updates user mutable fields. Allowed for account owner.",
     request: {
@@ -38,7 +43,6 @@ export const spec = defineCommand({
     summary: "Update user profile",
     tags: ["Users"],
   },
-  version: "2026-08-27",
 });
 
 const updateUser: InferCommand<typeof spec> = async (input, { prisma }) => {

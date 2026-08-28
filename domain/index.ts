@@ -1,18 +1,22 @@
 import "server-only";
-import fs from "node:fs";
-import path from "node:path";
 
-import { type UserCommandName } from "@/domain/users";
+import { type LocationCommandName, locationCommands } from "@/domain/locations";
+import { type UserCommandName, userCommands } from "@/domain/users";
 import { type CommandHandler, type CommandSpec } from "@/lib/commands/types";
 
-export type AllCommandName = UserCommandName;
+export type AllCommandName = LocationCommandName | UserCommandName;
 
 export interface LoadedCommandModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: CommandHandler<any, any>;
+  default: CommandHandler<any, any, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  spec: CommandSpec<any, any>;
+  spec: CommandSpec<any, any, any>;
 }
+
+const commandModules = {
+  ...locationCommands,
+  ...userCommands,
+};
 
 let loadedCommandsCache: null | Record<string, LoadedCommandModule> = null;
 
@@ -24,21 +28,11 @@ export async function getAllCommands(): Promise<
   }
 
   const commands: Record<string, LoadedCommandModule> = {};
-  const domainDir = path.resolve(process.cwd(), "domain");
-  const files = findCommandFiles(domainDir);
-
-  for (const file of files) {
-    const mod = await import(/* turbopackIgnore: true */ file);
-    if (
-      mod.spec?.name &&
-      mod.spec?.version &&
-      typeof mod.default === "function"
-    ) {
-      commands[mod.spec.name] = {
-        default: mod.default,
-        spec: mod.spec,
-      };
-    }
+  for (const mod of Object.values(commandModules)) {
+    commands[mod.spec.name] = {
+      default: mod.default,
+      spec: mod.spec,
+    };
   }
 
   loadedCommandsCache = commands;
@@ -60,25 +54,4 @@ export async function getCommand(
     return byName;
   }
   return undefined;
-}
-
-function findCommandFiles(dir: string): string[] {
-  const files: string[] = [];
-  if (!fs.existsSync(dir)) return files;
-
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...findCommandFiles(fullPath));
-    } else if (
-      entry.isFile() &&
-      entry.name.endsWith(".command.ts") &&
-      !entry.name.endsWith(".test.ts") &&
-      !entry.name.endsWith(".d.ts")
-    ) {
-      files.push(fullPath);
-    }
-  }
-  return files;
 }

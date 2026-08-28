@@ -22,9 +22,11 @@ export type ActionResult<TData> =
     }
   | { data: TData; success: true };
 
-export type AuthorizePredicate<TInput> = (
+export type AuthorizePredicate<TInput, TRecord = undefined> = (
   user: SessionUser,
   input: TInput,
+  record: TRecord,
+  prisma: PrismaClient,
 ) => boolean | Promise<boolean>;
 
 export interface AuthSession {
@@ -35,16 +37,18 @@ export interface AuthSession {
   user: SessionUser;
 }
 
-export interface CommandContext {
+export type CommandContext<TRecord = undefined> = ([TRecord] extends [undefined]
+  ? { readonly record?: undefined }
+  : { readonly record: TRecord }) & {
   readonly commandName: string;
   readonly prisma: PrismaClient;
   readonly session: AuthSession;
   readonly version: string;
-}
+};
 
-export type CommandHandler<TInput, TOutput> = (
+export type CommandHandler<TInput, TOutput, TRecord = undefined> = (
   input: TInput,
-  context: CommandContext,
+  context: CommandContext<TRecord>,
 ) => Promise<TOutput>;
 
 export interface CommandOpenApiSpec<
@@ -69,14 +73,25 @@ export interface CommandOpenApiSpec<
 export interface CommandSpec<
   TReq extends z.ZodTypeAny = z.ZodTypeAny,
   TRes extends z.ZodTypeAny = z.ZodTypeAny,
+  TRecord = undefined,
 > {
-  readonly authorize: AuthorizePredicate<z.infer<TReq>>;
+  readonly authorize: AuthorizePredicate<z.infer<TReq>, TRecord>;
+  readonly load?: Load<z.infer<TReq>, TRecord>;
   readonly name: string;
   readonly spec: CommandOpenApiSpec<TReq, TRes>;
   readonly version: string;
 }
 
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
+
+export interface Load<TInput, TRecord> {
+  entity: string;
+  fetch: (
+    user: SessionUser,
+    input: TInput,
+    prisma: PrismaClient,
+  ) => PromiseLike<null | TRecord>;
+}
 
 export interface SessionUser {
   email: string;

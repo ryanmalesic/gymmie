@@ -62,6 +62,7 @@ test("UsPhone rejects non-US and invalid numbers", () => {
   expect(() => UsPhone.parse("+44 20 7946 0958")).toThrow();
   expect(() => UsPhone.parse("123")).toThrow();
   expect(() => UsPhone.parse("0155551234")).toThrow();
+  expect(() => UsPhone.parse("+1 (123) 456-7890")).toThrow();
 });
 
 test("UsState uppercases and validates USPS codes", () => {

@@ -66,3 +66,7 @@ e2e-ui:
 openapi:
     pnpm openapi
 
+# Check lib/openapi.yaml for breaking changes vs git (origin/main)
+openapi-breaking:
+    pnpm openapi:breaking
+

@@ -7,29 +7,6 @@ servers:
   - url: /
 components:
   schemas:
-    CreateUserResponse:
-      type: object
-      properties:
-        createdAt:
-          type:
-            - string
-            - 'null'
-          format: date-time
-        email:
-          type: string
-          format: email
-        id:
-          type: string
-        name:
-          type: string
-          minLength: 1
-          maxLength: 80
-      required:
-        - createdAt
-        - email
-        - id
-        - name
-      additionalProperties: false
     ErrorResponse:
       type: object
       properties:
@@ -62,19 +39,298 @@ components:
         - CONFLICT
         - BAD_REQUEST
         - INTERNAL_ERROR
-    CreateUserRequest:
+    DeleteLocationResponse:
       type: object
       properties:
-        email:
+        id:
           type: string
-          format: email
+          minLength: 1
+        success:
+          type: boolean
+      required:
+        - id
+        - success
+      additionalProperties: false
+    DeleteLocationRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: Target location ID to delete
+      required:
+        - id
+      additionalProperties: false
+    ListMyLocationsResponse:
+      type: object
+      properties:
+        locations:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - ACTIVE
+                  - CLOSED
+                  - DRAFT
+                  - ONBOARDING
+                  - PAUSED
+                  - PENDING
+                  - REJECTED
+                  - RESTRICTED
+                  - SUSPENDED
+              type:
+                type: string
+                enum:
+                  - AQUATIC_CENTER
+                  - BARRE_STUDIO
+                  - BOUTIQUE_GYM
+                  - BOXING_GYM
+                  - CENTER
+                  - CLIMBING_GYM
+                  - COMBAT_GYM
+                  - COMMERCIAL_GYM
+                  - COMMUNITY_CENTER
+                  - CROSSFIT_STUDIO
+                  - GYM
+                  - HOME_GYM
+                  - HOTEL_GYM
+                  - OTHER
+                  - PILATES_STUDIO
+                  - REHAB_CENTER
+                  - SPIN_STUDIO
+                  - STUDIO
+                  - TRAINING_STUDIO
+                  - UNIVERSITY_GYM
+                  - YOGA_STUDIO
+              id:
+                type: string
+              name:
+                type: string
+                minLength: 1
+                maxLength: 100
+              phone:
+                type: string
+                description: US phone number
+                example: +1 (415) 555-1234
+              email:
+                type: string
+                description: Email address
+                example: ada@example.com
+                format: email
+              website:
+                type: string
+                description: Secure HTTPS URL
+                example: https://example.com/image.png
+                format: uri
+              addressLine1:
+                type: string
+                minLength: 1
+                maxLength: 255
+              addressLine2:
+                type:
+                  - string
+                  - 'null'
+                maxLength: 255
+              city:
+                type: string
+                minLength: 1
+                maxLength: 100
+              state:
+                type: string
+                description: USPS state code
+                example: CA
+              postalCode:
+                type: string
+                description: US ZIP code
+                example: '94107'
+              country:
+                type: string
+                description: ISO 3166-1 alpha-2 country code
+                example: US
+              timezone:
+                type: string
+                description: IANA time zone
+                example: America/New_York
+              latitude:
+                type: number
+                description: Latitude in decimal degrees
+                example: 37.7749
+              longitude:
+                type: number
+                description: Longitude in decimal degrees
+                example: -122.4194
+              createdAt:
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+              updatedAt:
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+              ownerId:
+                type: string
+            required:
+              - status
+              - type
+              - id
+              - name
+              - phone
+              - email
+              - website
+              - addressLine1
+              - addressLine2
+              - city
+              - state
+              - postalCode
+              - country
+              - timezone
+              - latitude
+              - longitude
+              - createdAt
+              - updatedAt
+              - ownerId
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalCount:
+          type: integer
+          minimum: 0
+      required:
+        - locations
+        - page
+        - pageSize
+        - totalCount
+      additionalProperties: false
+    ListMyLocationsRequest:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+          maximum: 1000
+          minimum: 1
+        pageSize:
+          type: integer
+          example: 20
+          maximum: 100
+          minimum: 1
+      additionalProperties: false
+    ReadLocationRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: Target location ID
+      required:
+        - id
+      additionalProperties: false
+    UpdateLocationRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - CLOSED
+            - DRAFT
+            - ONBOARDING
+            - PAUSED
+            - PENDING
+            - REJECTED
+            - RESTRICTED
+            - SUSPENDED
+        type:
+          type: string
+          enum:
+            - AQUATIC_CENTER
+            - BARRE_STUDIO
+            - BOUTIQUE_GYM
+            - BOXING_GYM
+            - CENTER
+            - CLIMBING_GYM
+            - COMBAT_GYM
+            - COMMERCIAL_GYM
+            - COMMUNITY_CENTER
+            - CROSSFIT_STUDIO
+            - GYM
+            - HOME_GYM
+            - HOTEL_GYM
+            - OTHER
+            - PILATES_STUDIO
+            - REHAB_CENTER
+            - SPIN_STUDIO
+            - STUDIO
+            - TRAINING_STUDIO
+            - UNIVERSITY_GYM
+            - YOGA_STUDIO
         name:
           type: string
           minLength: 1
-          maxLength: 80
+          maxLength: 100
+        phone:
+          type: string
+          description: US phone number
+          example: +1 (415) 555-1234
+        email:
+          type: string
+          description: Email address
+          example: ada@example.com
+          format: email
+        website:
+          type: string
+          description: Secure HTTPS URL
+          example: https://example.com/image.png
+          format: uri
+        addressLine1:
+          type: string
+          minLength: 1
+          maxLength: 255
+        addressLine2:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+        city:
+          type: string
+          minLength: 1
+          maxLength: 100
+        state:
+          type: string
+          description: USPS state code
+          example: CA
+        postalCode:
+          type: string
+          description: US ZIP code
+          example: '94107'
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          example: US
+        timezone:
+          type: string
+          description: IANA time zone
+          example: America/New_York
+        latitude:
+          type: number
+          description: Latitude in decimal degrees
+          example: 37.7749
+        longitude:
+          type: number
+          description: Longitude in decimal degrees
+          example: -122.4194
+        id:
+          type: string
+          minLength: 1
+          description: Target location ID
       required:
-        - email
-        - name
+        - id
       additionalProperties: false
     DeleteUserResponse:
       type: object
@@ -98,6 +354,41 @@ components:
       required:
         - id
       additionalProperties: false
+    GetMyUserResponse:
+      type: object
+      properties:
+        createdAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        email:
+          type: string
+          description: Email address
+          example: ada@example.com
+          format: email
+        id:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        updatedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - createdAt
+        - email
+        - id
+        - name
+        - updatedAt
+      additionalProperties: false
+    GetMyUserRequest:
+      type: object
+      properties: {}
+      additionalProperties: false
     ListUsersResponse:
       type: object
       properties:
@@ -113,26 +404,42 @@ components:
           items:
             type: object
             properties:
-              createdAt:
-                type:
-                  - string
-                  - 'null'
-                format: date-time
-              email:
-                type: string
-                format: email
               id:
                 type: string
               name:
                 type: string
                 minLength: 1
                 maxLength: 80
+              email:
+                type: string
+                description: Email address
+                example: ada@example.com
+                format: email
+              emailVerified:
+                type: boolean
+              image:
+                type: string
+                description: Secure HTTPS URL
+                example: https://example.com/image.png
+                format: uri
+              createdAt:
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+              updatedAt:
+                type:
+                  - string
+                  - 'null'
+                format: date-time
             required:
-              - createdAt
-              - email
               - id
               - name
-            additionalProperties: false
+              - email
+              - emailVerified
+              - image
+              - createdAt
+              - updatedAt
       required:
         - page
         - pageSize
@@ -142,14 +449,9 @@ components:
     ListUsersRequest:
       type: object
       properties:
-        createdAfter:
-          type: string
-          description: ISO 8601 UTC Timestamp
-          example: '2026-08-27T21:57:51.000Z'
-          format: date-time
         page:
           type: integer
-          example: 20
+          example: 1
           maximum: 1000
           minimum: 1
         pageSize:
@@ -168,6 +470,8 @@ components:
           format: date-time
         email:
           type: string
+          description: Email address
+          example: ada@example.com
           format: email
         id:
           type: string
@@ -207,6 +511,8 @@ components:
           format: date-time
         email:
           type: string
+          description: Email address
+          example: ada@example.com
           format: email
         id:
           type: string
@@ -243,26 +549,131 @@ components:
       additionalProperties: false
   parameters: {}
 paths:
-  /api/rpc/2026-08-27/createUser:
+  /api/rpc/2026-08-28/CreateLocation:
     post:
       deprecated: false
       description: >-
-        [Version Lock: 2026-08-27] Inserts a new user record. Requires active
-        session.
+        [Version Lock: 2026-08-28] Creates a location owned by the current user.
+        Allowed for the owner.
       security:
         - bearerAuth: []
-      summary: Create a new user
+      summary: Create a location
       tags:
-        - Users
+        - Locations
       requestBody:
-        description: New user payload
+        description: New location payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - ACTIVE
+                    - CLOSED
+                    - DRAFT
+                    - ONBOARDING
+                    - PAUSED
+                    - PENDING
+                    - REJECTED
+                    - RESTRICTED
+                    - SUSPENDED
+                type:
+                  type: string
+                  enum:
+                    - AQUATIC_CENTER
+                    - BARRE_STUDIO
+                    - BOUTIQUE_GYM
+                    - BOXING_GYM
+                    - CENTER
+                    - CLIMBING_GYM
+                    - COMBAT_GYM
+                    - COMMERCIAL_GYM
+                    - COMMUNITY_CENTER
+                    - CROSSFIT_STUDIO
+                    - GYM
+                    - HOME_GYM
+                    - HOTEL_GYM
+                    - OTHER
+                    - PILATES_STUDIO
+                    - REHAB_CENTER
+                    - SPIN_STUDIO
+                    - STUDIO
+                    - TRAINING_STUDIO
+                    - UNIVERSITY_GYM
+                    - YOGA_STUDIO
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                phone:
+                  type: string
+                  description: US phone number
+                  example: +1 (415) 555-1234
+                email:
+                  type: string
+                  description: Email address
+                  example: ada@example.com
+                  format: email
+                website:
+                  type: string
+                  description: Secure HTTPS URL
+                  example: https://example.com/image.png
+                  format: uri
+                addressLine1:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                addressLine2:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 255
+                city:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                state:
+                  type: string
+                  description: USPS state code
+                  example: CA
+                postalCode:
+                  type: string
+                  description: US ZIP code
+                  example: '94107'
+                country:
+                  type: string
+                  description: ISO 3166-1 alpha-2 country code
+                  example: US
+                timezone:
+                  type: string
+                  description: IANA time zone
+                  example: America/New_York
+                latitude:
+                  type: number
+                  description: Latitude in decimal degrees
+                  example: 37.7749
+                longitude:
+                  type: number
+                  description: Longitude in decimal degrees
+                  example: -122.4194
+              required:
+                - type
+                - name
+                - phone
+                - email
+                - website
+                - addressLine1
+                - city
+                - state
+                - postalCode
+                - latitude
+                - longitude
+              additionalProperties: false
       responses:
         '201':
-          description: Created user record
+          description: Created location record
           headers:
             x-rpc-command:
               description: Executed RPC command name
@@ -275,7 +686,133 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - CLOSED
+                      - DRAFT
+                      - ONBOARDING
+                      - PAUSED
+                      - PENDING
+                      - REJECTED
+                      - RESTRICTED
+                      - SUSPENDED
+                  type:
+                    type: string
+                    enum:
+                      - AQUATIC_CENTER
+                      - BARRE_STUDIO
+                      - BOUTIQUE_GYM
+                      - BOXING_GYM
+                      - CENTER
+                      - CLIMBING_GYM
+                      - COMBAT_GYM
+                      - COMMERCIAL_GYM
+                      - COMMUNITY_CENTER
+                      - CROSSFIT_STUDIO
+                      - GYM
+                      - HOME_GYM
+                      - HOTEL_GYM
+                      - OTHER
+                      - PILATES_STUDIO
+                      - REHAB_CENTER
+                      - SPIN_STUDIO
+                      - STUDIO
+                      - TRAINING_STUDIO
+                      - UNIVERSITY_GYM
+                      - YOGA_STUDIO
+                  id:
+                    type: string
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                  phone:
+                    type: string
+                    description: US phone number
+                    example: +1 (415) 555-1234
+                  email:
+                    type: string
+                    description: Email address
+                    example: ada@example.com
+                    format: email
+                  website:
+                    type: string
+                    description: Secure HTTPS URL
+                    example: https://example.com/image.png
+                    format: uri
+                  addressLine1:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  addressLine2:
+                    type:
+                      - string
+                      - 'null'
+                    maxLength: 255
+                  city:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                  state:
+                    type: string
+                    description: USPS state code
+                    example: CA
+                  postalCode:
+                    type: string
+                    description: US ZIP code
+                    example: '94107'
+                  country:
+                    type: string
+                    description: ISO 3166-1 alpha-2 country code
+                    example: US
+                  timezone:
+                    type: string
+                    description: IANA time zone
+                    example: America/New_York
+                  latitude:
+                    type: number
+                    description: Latitude in decimal degrees
+                    example: 37.7749
+                  longitude:
+                    type: number
+                    description: Longitude in decimal degrees
+                    example: -122.4194
+                  createdAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                  updatedAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                  ownerId:
+                    type: string
+                required:
+                  - status
+                  - type
+                  - id
+                  - name
+                  - phone
+                  - email
+                  - website
+                  - addressLine1
+                  - addressLine2
+                  - city
+                  - state
+                  - postalCode
+                  - country
+                  - timezone
+                  - latitude
+                  - longitude
+                  - createdAt
+                  - updatedAt
+                  - ownerId
         '400':
           description: Bad Request
           content:
@@ -294,6 +831,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           description: Unprocessable Entity - Schema validation failed
           content:
@@ -306,7 +849,672 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/rpc/2026-08-27/deleteUser:
+  /api/rpc/2026-08-28/DeleteLocation:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-28] Deletes a location. Allowed for the location
+        owner.
+      security:
+        - bearerAuth: []
+      summary: Delete a location
+      tags:
+        - Locations
+      requestBody:
+        description: Target location ID
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteLocationRequest'
+      responses:
+        '200':
+          description: Deletion status
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteLocationResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-28/ListMyLocations:
+    post:
+      deprecated: false
+      description: '[Version Lock: 2026-08-28] Lists locations owned by the current user.'
+      security:
+        - bearerAuth: []
+      summary: List my locations
+      tags:
+        - Locations
+      requestBody:
+        description: Pagination
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListMyLocationsRequest'
+      responses:
+        '200':
+          description: Paginated locations owned by the current user
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMyLocationsResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-28/ReadLocation:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-28] Fetches a location by ID. Accessible by
+        authenticated users.
+      security:
+        - bearerAuth: []
+      summary: Fetch location by ID
+      tags:
+        - Locations
+      requestBody:
+        description: Target location ID
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadLocationRequest'
+      responses:
+        '200':
+          description: Location record
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - CLOSED
+                      - DRAFT
+                      - ONBOARDING
+                      - PAUSED
+                      - PENDING
+                      - REJECTED
+                      - RESTRICTED
+                      - SUSPENDED
+                  type:
+                    type: string
+                    enum:
+                      - AQUATIC_CENTER
+                      - BARRE_STUDIO
+                      - BOUTIQUE_GYM
+                      - BOXING_GYM
+                      - CENTER
+                      - CLIMBING_GYM
+                      - COMBAT_GYM
+                      - COMMERCIAL_GYM
+                      - COMMUNITY_CENTER
+                      - CROSSFIT_STUDIO
+                      - GYM
+                      - HOME_GYM
+                      - HOTEL_GYM
+                      - OTHER
+                      - PILATES_STUDIO
+                      - REHAB_CENTER
+                      - SPIN_STUDIO
+                      - STUDIO
+                      - TRAINING_STUDIO
+                      - UNIVERSITY_GYM
+                      - YOGA_STUDIO
+                  id:
+                    type: string
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                  phone:
+                    type: string
+                    description: US phone number
+                    example: +1 (415) 555-1234
+                  email:
+                    type: string
+                    description: Email address
+                    example: ada@example.com
+                    format: email
+                  website:
+                    type: string
+                    description: Secure HTTPS URL
+                    example: https://example.com/image.png
+                    format: uri
+                  addressLine1:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  addressLine2:
+                    type:
+                      - string
+                      - 'null'
+                    maxLength: 255
+                  city:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                  state:
+                    type: string
+                    description: USPS state code
+                    example: CA
+                  postalCode:
+                    type: string
+                    description: US ZIP code
+                    example: '94107'
+                  country:
+                    type: string
+                    description: ISO 3166-1 alpha-2 country code
+                    example: US
+                  timezone:
+                    type: string
+                    description: IANA time zone
+                    example: America/New_York
+                  latitude:
+                    type: number
+                    description: Latitude in decimal degrees
+                    example: 37.7749
+                  longitude:
+                    type: number
+                    description: Longitude in decimal degrees
+                    example: -122.4194
+                  createdAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                  updatedAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                  ownerId:
+                    type: string
+                required:
+                  - status
+                  - type
+                  - id
+                  - name
+                  - phone
+                  - email
+                  - website
+                  - addressLine1
+                  - addressLine2
+                  - city
+                  - state
+                  - postalCode
+                  - country
+                  - timezone
+                  - latitude
+                  - longitude
+                  - createdAt
+                  - updatedAt
+                  - ownerId
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-28/UpdateLocation:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-28] Updates location fields. Allowed for the
+        location owner.
+      security:
+        - bearerAuth: []
+      summary: Update a location
+      tags:
+        - Locations
+      requestBody:
+        description: Location ID and mutable fields
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationRequest'
+      responses:
+        '200':
+          description: Updated location record
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - CLOSED
+                      - DRAFT
+                      - ONBOARDING
+                      - PAUSED
+                      - PENDING
+                      - REJECTED
+                      - RESTRICTED
+                      - SUSPENDED
+                  type:
+                    type: string
+                    enum:
+                      - AQUATIC_CENTER
+                      - BARRE_STUDIO
+                      - BOUTIQUE_GYM
+                      - BOXING_GYM
+                      - CENTER
+                      - CLIMBING_GYM
+                      - COMBAT_GYM
+                      - COMMERCIAL_GYM
+                      - COMMUNITY_CENTER
+                      - CROSSFIT_STUDIO
+                      - GYM
+                      - HOME_GYM
+                      - HOTEL_GYM
+                      - OTHER
+                      - PILATES_STUDIO
+                      - REHAB_CENTER
+                      - SPIN_STUDIO
+                      - STUDIO
+                      - TRAINING_STUDIO
+                      - UNIVERSITY_GYM
+                      - YOGA_STUDIO
+                  id:
+                    type: string
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                  phone:
+                    type: string
+                    description: US phone number
+                    example: +1 (415) 555-1234
+                  email:
+                    type: string
+                    description: Email address
+                    example: ada@example.com
+                    format: email
+                  website:
+                    type: string
+                    description: Secure HTTPS URL
+                    example: https://example.com/image.png
+                    format: uri
+                  addressLine1:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  addressLine2:
+                    type:
+                      - string
+                      - 'null'
+                    maxLength: 255
+                  city:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                  state:
+                    type: string
+                    description: USPS state code
+                    example: CA
+                  postalCode:
+                    type: string
+                    description: US ZIP code
+                    example: '94107'
+                  country:
+                    type: string
+                    description: ISO 3166-1 alpha-2 country code
+                    example: US
+                  timezone:
+                    type: string
+                    description: IANA time zone
+                    example: America/New_York
+                  latitude:
+                    type: number
+                    description: Latitude in decimal degrees
+                    example: 37.7749
+                  longitude:
+                    type: number
+                    description: Longitude in decimal degrees
+                    example: -122.4194
+                  createdAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                  updatedAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                  ownerId:
+                    type: string
+                required:
+                  - status
+                  - type
+                  - id
+                  - name
+                  - phone
+                  - email
+                  - website
+                  - addressLine1
+                  - addressLine2
+                  - city
+                  - state
+                  - postalCode
+                  - country
+                  - timezone
+                  - latitude
+                  - longitude
+                  - createdAt
+                  - updatedAt
+                  - ownerId
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/CreateUser:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-27] Inserts a new user record. Requires active
+        session.
+      security:
+        - bearerAuth: []
+      summary: Create a new user
+      tags:
+        - Users
+      requestBody:
+        description: New user payload
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                email:
+                  type: string
+                  description: Email address
+                  example: ada@example.com
+                  format: email
+                emailVerified:
+                  type: boolean
+                image:
+                  type: string
+                  description: Secure HTTPS URL
+                  example: https://example.com/image.png
+                  format: uri
+                createdAt:
+                  type:
+                    - string
+                    - 'null'
+                  format: date-time
+                updatedAt:
+                  type:
+                    - string
+                    - 'null'
+                  format: date-time
+              required:
+                - name
+                - email
+              additionalProperties: false
+      responses:
+        '201':
+          description: Created user record
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 80
+                  email:
+                    type: string
+                    description: Email address
+                    example: ada@example.com
+                    format: email
+                  emailVerified:
+                    type: boolean
+                  image:
+                    type: string
+                    description: Secure HTTPS URL
+                    example: https://example.com/image.png
+                    format: uri
+                  createdAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                  updatedAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                required:
+                  - id
+                  - name
+                  - email
+                  - emailVerified
+                  - image
+                  - createdAt
+                  - updatedAt
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/DeleteUser:
     post:
       deprecated: false
       description: >-
@@ -357,6 +1565,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           description: Unprocessable Entity - Schema validation failed
           content:
@@ -369,19 +1583,84 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/rpc/2026-08-27/listUsers:
+  /api/rpc/2026-08-28/GetMyUser:
     post:
       deprecated: false
-      description: >-
-        [Version Lock: 2026-08-27] Queries users with pagination and date
-        filters.
+      description: '[Version Lock: 2026-08-28] Fetches the current authenticated user.'
+      security:
+        - bearerAuth: []
+      summary: Fetch the current user
+      tags:
+        - Users
+      requestBody:
+        description: Empty payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMyUserRequest'
+      responses:
+        '200':
+          description: Current user record
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMyUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/ListUsers:
+    post:
+      deprecated: false
+      description: '[Version Lock: 2026-08-27] Queries users with pagination.'
       security:
         - bearerAuth: []
       summary: List paginated users
       tags:
         - Users
       requestBody:
-        description: Pagination and filters
+        description: Pagination
         content:
           application/json:
             schema:
@@ -420,6 +1699,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           description: Unprocessable Entity - Schema validation failed
           content:
@@ -432,7 +1717,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/rpc/2026-08-27/readUser:
+  /api/rpc/2026-08-27/ReadUser:
     post:
       deprecated: false
       description: >-
@@ -483,6 +1768,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           description: Unprocessable Entity - Schema validation failed
           content:
@@ -495,7 +1786,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/rpc/2026-08-27/updateUser:
+  /api/rpc/2026-08-27/UpdateUser:
     post:
       deprecated: false
       description: >-
@@ -542,6 +1833,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
           content:
             application/json:
               schema:

@@ -3,6 +3,7 @@ name: openapi
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
 
@@ -31,8 +32,21 @@ jobs:
       - run: just install
       - name: Generate current OpenAPI spec
         run: pnpm openapi
+      - name: Decide oasdiff fail-on
+        id: oasdiff
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" && ",${LABELS}," == *",breaking-change,"* ]]; then
+            echo "fail_on=" >> "$GITHUB_OUTPUT"
+            echo "breaking-change label present; reporting only"
+          else
+            echo "fail_on=ERR" >> "$GITHUB_OUTPUT"
+          fi
       - name: Run oasdiff breaking change check
         uses: oasdiff/oasdiff-action/breaking@main
         with:
           base: base-openapi.yaml
           revision: lib/openapi.yaml
+          fail-on: ${{ steps.oasdiff.outputs.fail_on }}

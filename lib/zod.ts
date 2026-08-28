@@ -17,7 +17,7 @@ export const WireDateTime = z
     type: "string",
   });
 
-export const WireInt = (min = 1, max = 100) =>
+export const WireInt = (min = 1, max = 100, example = min) =>
   z
     .union([
       z.number().int().min(min).max(max),
@@ -28,7 +28,7 @@ export const WireInt = (min = 1, max = 100) =>
         .pipe(z.number().int().min(min).max(max)),
     ])
     .openapi({
-      example: 20,
+      example,
       maximum: max,
       minimum: min,
       type: "integer",
@@ -138,7 +138,7 @@ export const UsPhone = z
   })
   .openapi({
     description: "US phone number",
-    example: "+1 (123) 456-7890",
+    example: "+1 (415) 555-1234",
     type: "string",
   });
 

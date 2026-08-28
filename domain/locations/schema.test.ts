@@ -125,8 +125,15 @@ test("requires type", () => {
   expect(flattenError(result.error).fieldErrors.type).toBeDefined();
 });
 
-test("allows omitting address line 2", () => {
-  expect(createLocationSchema.safeParse(validCreate).success).toBe(true);
+test("rejects client-supplied id and timestamps", () => {
+  const result = createLocationSchema.safeParse({
+    ...validCreate,
+    createdAt: new Date(),
+    id: "string",
+    updatedAt: new Date(),
+  });
+
+  expect(result.success).toBe(false);
 });
 
 test("requires phone, email, website, and coordinates", () => {

@@ -19,8 +19,13 @@ const responseSchema = z
   .openapi("DeleteUserResponse");
 
 export const spec = defineCommand({
-  authorize: (user, input) => user.id === input.id,
-  name: "deleteUser",
+  load: {
+    entity: "User",
+    fetch: (_user, input, prisma) =>
+      prisma.user.findUnique({ where: { id: input.id } }),
+  },
+  authorize: (user, _input, record) => record.id === user.id,
+  name: "DeleteUser",
   spec: {
     description: "Deletes a user record. Allowed for account owner.",
     request: { description: "Target user ID", schema: requestSchema },
@@ -32,7 +37,6 @@ export const spec = defineCommand({
     summary: "Delete user",
     tags: ["Users"],
   },
-  version: "2026-08-27",
 });
 
 const deleteUser: InferCommand<typeof spec> = async (input, { prisma }) => {

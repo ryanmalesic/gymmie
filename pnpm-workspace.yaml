@@ -1,7 +1,8 @@
 allowBuilds:
   "@prisma/engines": true
+  "@scarf/scarf": true
   esbuild: true
   prisma: true
   prisma-zod-generator: true
-  sharp: false
-  unrs-resolver: false
+  sharp: true
+  unrs-resolver: true

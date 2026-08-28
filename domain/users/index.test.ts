@@ -8,4 +8,5 @@ test("exports all user domain commands in registry", () => {
   expect(userCommands.updateUser).toBeDefined();
   expect(userCommands.deleteUser).toBeDefined();
   expect(userCommands.listUsers).toBeDefined();
+  expect(userCommands.getMyUser).toBeDefined();
 });

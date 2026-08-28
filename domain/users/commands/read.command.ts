@@ -1,7 +1,6 @@
 import "server-only";
 
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
-import { NotFoundError } from "@/lib/commands/errors";
 import { UserSchema } from "@/lib/generated/zod/modelSchema/UserSchema";
 import { z } from "@/lib/zod";
 
@@ -23,8 +22,13 @@ const responseSchema = UserSchema.pick({
   .openapi("ReadUserResponse");
 
 export const spec = defineCommand({
-  authorize: (user, input) => user.id === input.id || true,
-  name: "readUser",
+  load: {
+    entity: "User",
+    fetch: (_user, input, prisma) =>
+      prisma.user.findUnique({ where: { id: input.id } }),
+  },
+  authorize: () => true,
+  name: "ReadUser",
   spec: {
     description: "Fetches user details. Accessible by authenticated users.",
     request: { description: "Target user ID", schema: requestSchema },
@@ -36,26 +40,16 @@ export const spec = defineCommand({
     summary: "Fetch user by ID",
     tags: ["Users"],
   },
-  version: "2026-08-27",
 });
 
-const readUser: InferCommand<typeof spec> = async (input, { prisma }) => {
-  const user = await prisma.user.findUnique({
-    select: {
-      createdAt: true,
-      email: true,
-      id: true,
-      name: true,
-      updatedAt: true,
-    },
-    where: { id: input.id },
-  });
-
-  if (!user) {
-    throw new NotFoundError("User", input.id);
-  }
-
-  return user;
+const readUser: InferCommand<typeof spec> = async (_input, { record }) => {
+  return {
+    createdAt: record.createdAt,
+    email: record.email,
+    id: record.id,
+    name: record.name,
+    updatedAt: record.updatedAt,
+  };
 };
 
 export default readUser;
