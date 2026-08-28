@@ -1,7 +1,7 @@
 import "server-only";
 
+import { userSchema } from "@/domain/users/schema";
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
-import { UserSchema } from "@/lib/generated/zod";
 import { WireDateTime, WireInt, z } from "@/lib/zod";
 
 const requestSchema = z
@@ -18,14 +18,7 @@ const responseSchema = z
     page: z.number().int(),
     pageSize: z.number().int(),
     totalCount: z.number().int().min(0),
-    users: z.array(
-      UserSchema.pick({
-        createdAt: true,
-        email: true,
-        id: true,
-        name: true,
-      }).strict(),
-    ),
+    users: z.array(userSchema),
   })
   .strict()
   .openapi("ListUsersResponse");
@@ -56,7 +49,6 @@ const listUsers: InferCommand<typeof spec> = async (input, { prisma }) => {
   const [users, totalCount] = await Promise.all([
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
-      select: { createdAt: true, email: true, id: true, name: true },
       skip,
       take: input.pageSize,
       where: whereClause,

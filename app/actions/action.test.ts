@@ -24,7 +24,7 @@ vi.mock("@/lib/db", () => ({
 
 const testRequestSchema = z
   .object({
-    email: z.string().email(),
+    email: z.email(),
     name: z.string().min(2),
   })
   .strict()

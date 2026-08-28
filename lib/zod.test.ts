@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { HttpsUrl, WireBool, WireDateTime, WireInt } from "@/lib/zod";
+import { Email, HttpsUrl, WireBool, WireDateTime, WireInt } from "@/lib/zod";
 
 test("WireDateTime parses dates and ISO strings", () => {
   const now = new Date();
@@ -30,4 +30,10 @@ test("HttpsUrl validates https URLs and rejects non-https", () => {
   );
   expect(() => HttpsUrl.parse("http://example.com/logo.png")).toThrow();
   expect(() => HttpsUrl.parse("not-a-url")).toThrow();
+});
+
+test("Email trims, lowercases, and rejects invalid addresses", () => {
+  expect(Email.parse("  Ada@Example.com ")).toBe("ada@example.com");
+  expect(() => Email.parse("   ")).toThrow();
+  expect(() => Email.parse("ada")).toThrow();
 });

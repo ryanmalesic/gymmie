@@ -68,8 +68,11 @@ test("resets form after successful submission", async () => {
     data: {
       createdAt: new Date(),
       email: "ada@example.com",
+      emailVerified: false,
       id: "usr_1",
+      image: null,
       name: "Ada",
+      updatedAt: new Date(),
     },
     success: true,
   });

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { createUserSchema } from "@/domain/users/schema";
+import { type CreateUser, createUserSchema } from "@/domain/users/schema";
 import { type MutationError, useCreateUserMutation } from "@/hooks/users";
 
 const FormDevtools = lazy(() =>
@@ -26,7 +26,7 @@ export function UserForm() {
   const [formError, setFormError] = useState<null | string>(null);
 
   const form = useForm({
-    defaultValues: { email: "", name: "" },
+    defaultValues: { email: "", name: "" } as CreateUser,
     onSubmit: async ({ createValidationError, value }) => {
       setFormError(null);
 

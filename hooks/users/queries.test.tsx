@@ -24,8 +24,11 @@ test("fetches user list via server action", async () => {
         {
           createdAt: new Date(),
           email: "test@example.com",
+          emailVerified: false,
           id: "u1",
+          image: null,
           name: "Test",
+          updatedAt: new Date(),
         },
       ],
     },

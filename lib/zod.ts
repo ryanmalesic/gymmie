@@ -47,6 +47,18 @@ export const WireBool = z
     type: "boolean",
   });
 
+export const Email = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email({ error: "Email is invalid" }))
+  .openapi({
+    description: "Email address",
+    example: "ada@example.com",
+    format: "email",
+    type: "string",
+  });
+
 export const HttpsUrl = z
   .url({ message: "Must be a valid URL" })
   .trim()

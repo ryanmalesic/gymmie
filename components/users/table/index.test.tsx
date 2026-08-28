@@ -5,8 +5,24 @@ import { UserTable, UserTableSkeleton } from "@/components/users/table";
 import { userColumns } from "@/components/users/table/columns";
 
 const users = [
-  { email: "zoe@example.com", id: "usr_1", name: "Zoe" },
-  { email: "ada@example.com", id: "usr_2", name: "Ada" },
+  {
+    createdAt: new Date("2026-08-01T00:00:00.000Z"),
+    email: "zoe@example.com",
+    emailVerified: false,
+    id: "usr_1",
+    image: null,
+    name: "Zoe",
+    updatedAt: new Date("2026-08-01T00:00:00.000Z"),
+  },
+  {
+    createdAt: new Date("2026-08-01T00:00:00.000Z"),
+    email: "ada@example.com",
+    emailVerified: false,
+    id: "usr_2",
+    image: null,
+    name: "Ada",
+    updatedAt: new Date("2026-08-01T00:00:00.000Z"),
+  },
 ];
 
 afterEach(cleanup);

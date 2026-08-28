@@ -1,20 +1,10 @@
 import "server-only";
 
+import { createUserSchema, userSchema } from "@/domain/users/schema";
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
-import { UserSchema } from "@/lib/generated/zod";
 
-const requestSchema = UserSchema.pick({ email: true, name: true })
-  .strict()
-  .openapi("CreateUserRequest");
-
-const responseSchema = UserSchema.pick({
-  createdAt: true,
-  email: true,
-  id: true,
-  name: true,
-})
-  .strict()
-  .openapi("CreateUserResponse");
+const requestSchema = createUserSchema;
+const responseSchema = userSchema;
 
 export const spec = defineCommand({
   authorize: () => true,
@@ -40,7 +30,6 @@ const createUser: InferCommand<typeof spec> = async (input, { prisma }) => {
       emailVerified: false,
       name: input.name,
     },
-    select: { createdAt: true, email: true, id: true, name: true },
   });
 };
 

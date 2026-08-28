@@ -57,8 +57,11 @@ test("loads and renders real users list on success", async () => {
         {
           createdAt: new Date(),
           email: "member@example.com",
+          emailVerified: false,
           id: "user-1",
+          image: null,
           name: "Member Name",
+          updatedAt: new Date(),
         },
       ],
     },

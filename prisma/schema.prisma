@@ -6,8 +6,8 @@ generator client {
 generator zod {
   provider                         = "zod-prisma-types"
   output                           = "../lib/generated/zod"
-  prismaClientPath                 = "../prisma"
-  useMultipleFiles                 = false
+  prismaClientPath                 = "../../prisma"
+  useMultipleFiles                 = true
   createInputTypes                 = true
   createModelTypes                 = true
   createOptionalDefaultValuesTypes = true
@@ -23,15 +23,14 @@ datasource db {
   provider = "postgresql"
 }
 
-/// @zod.import(["import { HttpsUrl } from '@/lib/zod'"])
 model User {
-  id            String   @id @default(dbgenerated("id()"))
+  id            String    @id @default(dbgenerated("id()"))
   /// @zod.string.trim().min(1, { message: "Name is required" }).max(80, { message: "Name is too long" })
   name          String
-  /// @zod.string.trim().toLowerCase().email({ message: "Email is invalid" })
+  /// @zod.import(["import { Email } from '@/lib/zod'"]).custom.use(Email)
   email         String
-  emailVerified Boolean
-  /// @zod.import(["import { HttpsUrl } from '@/lib/zod'"]).custom.use(HttpsUrl.nullish())
+  emailVerified Boolean   @default(false)
+  /// @zod.import(["import { HttpsUrl } from '@/lib/zod'"]).custom.use(HttpsUrl)
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -58,20 +57,20 @@ model Session {
 }
 
 model Account {
-  id                   String    @id @default(dbgenerated("id()"))
-  userId               String
-  accountId            String
-  providerId           String
-  issuer               String
-  accessToken          String?
-  refreshToken         String?
-  idToken              String?
-  accessTokenExpiresAt DateTime?
+  id                    String    @id @default(dbgenerated("id()"))
+  userId                String
+  accountId             String
+  providerId            String
+  issuer                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
-  scope                String?
-  password             String?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

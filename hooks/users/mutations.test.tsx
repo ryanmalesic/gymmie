@@ -23,17 +23,27 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+const listedAt = new Date("2026-08-01T00:00:00.000Z");
+
+function listedUser(email: string, id: string, name: string): User {
+  return {
+    createdAt: listedAt,
+    email,
+    emailVerified: false,
+    id,
+    image: null,
+    name,
+    updatedAt: listedAt,
+  };
+}
+
 const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={testQueryClient}>{children}</QueryClientProvider>
 );
 
 test("optimistically adds user to query cache", async () => {
   const initialUsers: User[] = [
-    {
-      email: "initial@example.com",
-      id: "u1",
-      name: "Initial User",
-    },
+    listedUser("initial@example.com", "u1", "Initial User"),
   ];
   testQueryClient.setQueryData(userKeys.list(), initialUsers);
 
@@ -56,11 +66,7 @@ test("optimistically adds user to query cache", async () => {
 
 test("rolls back cache on mutation error", async () => {
   const initialUsers: User[] = [
-    {
-      email: "initial@example.com",
-      id: "u1",
-      name: "Initial User",
-    },
+    listedUser("initial@example.com", "u1", "Initial User"),
   ];
   testQueryClient.setQueryData(userKeys.list(), initialUsers);
 
@@ -91,12 +97,7 @@ test("invalidates queries on settled", async () => {
   const invalidateSpy = vi.spyOn(testQueryClient, "invalidateQueries");
 
   vi.mocked(createUserAction).mockResolvedValue({
-    data: {
-      createdAt: new Date(),
-      email: "success@example.com",
-      id: "u2",
-      name: "Success",
-    },
+    data: listedUser("success@example.com", "u2", "Success"),
     success: true,
   });
 
@@ -114,11 +115,7 @@ test("invalidates queries on settled", async () => {
 
 test("passes previousUsers in context onMutate", async () => {
   const initialUsers: User[] = [
-    {
-      email: "initial@example.com",
-      id: "u1",
-      name: "Initial User",
-    },
+    listedUser("initial@example.com", "u1", "Initial User"),
   ];
   testQueryClient.setQueryData(userKeys.list(), initialUsers);
 

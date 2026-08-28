@@ -6,7 +6,7 @@ import { z } from "@/lib/zod";
 test("derives strict request and response schemas from model", () => {
   const model = z.object({
     createdAt: z.date(),
-    email: z.string().email(),
+    email: z.email(),
     id: z.string(),
     name: z.string(),
   });

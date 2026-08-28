@@ -38,10 +38,15 @@ export function useCreateUserMutation() {
       const previousUsers = queryClient.getQueryData<User[]>(userKeys.list());
 
       if (previousUsers) {
+        const now = new Date();
         const optimisticUser: User = {
+          createdAt: now,
           email: newUser.email,
+          emailVerified: false,
           id: `temp-${Date.now()}`,
+          image: null,
           name: newUser.name,
+          updatedAt: now,
         };
         queryClient.setQueryData<User[]>(userKeys.list(), [
           ...previousUsers,

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
-import { UserSchema } from "@/lib/generated/zod";
+import { UserSchema } from "@/lib/generated/zod/modelSchema/UserSchema";
 import { z } from "@/lib/zod";
 
 const requestSchema = UserSchema.pick({ name: true })
