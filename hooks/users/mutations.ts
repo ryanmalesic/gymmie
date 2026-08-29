@@ -40,12 +40,24 @@ export function useCreateUserMutation() {
       if (previousUsers) {
         const now = new Date();
         const optimisticUser: User = {
+          addressLine1: null,
+          addressLine2: null,
+          city: null,
+          country: "US",
           createdAt: now,
           email: newUser.email,
           emailVerified: false,
           id: `temp-${Date.now()}`,
           image: null,
+          latitude: null,
+          longitude: null,
           name: newUser.name,
+          phone: null,
+          postalCode: null,
+          state: null,
+          stripeAccountId: null,
+          stripeAccountStatus: null,
+          timezone: "America/New_York",
           updatedAt: now,
         };
         queryClient.setQueryData<User[]>(userKeys.list(), [

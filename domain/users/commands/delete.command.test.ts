@@ -13,14 +13,27 @@ test("deleteUser command spec and execution", async () => {
     },
   };
 
+  const now = new Date();
   const user = {
-    createdAt: new Date(),
+    addressLine1: null,
+    addressLine2: null,
+    city: null,
+    country: "US",
+    createdAt: now,
     email: "ada@example.com",
     emailVerified: false,
     id: "usr_1",
     image: null,
+    latitude: null,
+    longitude: null,
     name: "Ada",
-    updatedAt: new Date(),
+    phone: null,
+    postalCode: null,
+    state: null,
+    stripeAccountId: null,
+    stripeAccountStatus: null,
+    timezone: "America/New_York",
+    updatedAt: now,
   };
 
   const context: CommandContext<typeof user> = {

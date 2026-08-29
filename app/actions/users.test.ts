@@ -5,6 +5,7 @@ import {
   deleteUserAction,
   getMyUserAction,
   listUsersAction,
+  onboardMeAction,
   readUserAction,
   updateUserAction,
 } from "@/app/actions/users";
@@ -16,4 +17,5 @@ test("exports all user domain server action functions", () => {
   expect(deleteUserAction).toBeTypeOf("function");
   expect(listUsersAction).toBeTypeOf("function");
   expect(getMyUserAction).toBeTypeOf("function");
+  expect(onboardMeAction).toBeTypeOf("function");
 });

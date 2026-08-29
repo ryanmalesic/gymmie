@@ -13,15 +13,16 @@ import {
   deleteUserAction,
   getMyUserAction,
   listUsersAction,
+  onboardMeAction,
   readUserAction,
   updateUserAction,
 } from "@/app/actions/users";
 import { POST } from "@/app/api/rpc/[version]/[command]/route";
 import { locationCommands } from "@/domain/locations";
-import { parseLocation } from "@/domain/locations/schema";
 import { userCommands } from "@/domain/users";
 import { auth } from "@/lib/auth";
 import { type AuthSession } from "@/lib/commands/types";
+import { getPrisma } from "@/lib/db";
 
 const testUserSession: AuthSession = {
   session: {
@@ -43,6 +44,26 @@ vi.mock("@/lib/auth", () => ({
   },
 }));
 
+vi.mock("@/lib/stripe", () => ({
+  getStripe: () => ({
+    accountLinks: {
+      create: vi.fn().mockResolvedValue({
+        url: "https://connect.stripe.com/setup/s/mock_link",
+      }),
+    },
+    accounts: {
+      create: vi.fn().mockResolvedValue({
+        id: "acct_mock_stripe_123",
+      }),
+    },
+    webhooks: {
+      constructEventAsync: vi.fn(),
+    },
+  }),
+  stripeSecretKey: () => "sk_test_mock",
+  stripeWebhookSecret: () => "whsec_mock",
+}));
+
 function gymPayload(overrides: Record<string, unknown> = {}) {
   return {
     addressLine1: "123 Main St",
@@ -53,7 +74,7 @@ function gymPayload(overrides: Record<string, unknown> = {}) {
     name: "Ironworks",
     phone: "+1 (415) 555-1234",
     postalCode: "94107",
-    state: "CA",
+    state: "CA" as const,
     type: "COMMERCIAL_GYM" as const,
     website: "https://ironworks.example",
     ...overrides,
@@ -258,7 +279,53 @@ test("full location command CRUD lifecycle via server actions", async () => {
   const owner = createUserResult.data;
   setSessionUser({ email: owner.email, id: owner.id, name: owner.name });
 
-  const createResult = await createLocationAction(parseLocation(gymPayload()));
+  // Initial location creation fails because profile is incomplete
+  const initialCreate = await createLocationAction(gymPayload());
+  expect(initialCreate.success).toBe(false);
+  if (!initialCreate.success) {
+    expect(initialCreate.code).toBe("FORBIDDEN");
+  }
+
+  // OnboardMe fails if profile is incomplete
+  const initialOnboard = await onboardMeAction({});
+  expect(initialOnboard.success).toBe(false);
+  if (!initialOnboard.success) {
+    expect(initialOnboard.code).toBe("FORBIDDEN");
+  }
+
+  // Complete profile
+  const updateProfileResult = await updateUserAction({
+    addressLine1: "123 Main St",
+    city: "San Francisco",
+    country: "US",
+    id: owner.id,
+    latitude: 37.7749,
+    longitude: -122.4194,
+    phone: "+1 (415) 555-1234",
+    postalCode: "94107",
+    state: "CA",
+    timezone: "America/New_York",
+  });
+  expect(updateProfileResult.success).toBe(true);
+
+  // OnboardMe succeeds now that profile is complete
+  const onboardResult = await onboardMeAction({});
+  expect(onboardResult.success).toBe(true);
+
+  // Location creation still fails because stripe status is PENDING
+  const pendingCreate = await createLocationAction(gymPayload());
+  expect(pendingCreate.success).toBe(false);
+  if (!pendingCreate.success) {
+    expect(pendingCreate.code).toBe("FORBIDDEN");
+  }
+
+  // Activate Stripe account
+  await getPrisma().user.update({
+    data: { stripeAccountStatus: "ACTIVATED" },
+    where: { id: owner.id },
+  });
+
+  const createResult = await createLocationAction(gymPayload());
   expect(createResult.success).toBe(true);
   if (!createResult.success) return;
 
@@ -345,8 +412,17 @@ test("HTTP RPC happy path covers every user and location command", async () => {
 
   const updatedName = "RPC Owner Updated";
   const updateUser = await postRpc(userCommands.updateUser.spec, {
+    addressLine1: "123 Main St",
+    city: "San Francisco",
+    country: "US",
     id: createdUser.id,
+    latitude: 37.7749,
+    longitude: -122.4194,
     name: updatedName,
+    phone: "+1 (415) 555-1234",
+    postalCode: "94107",
+    state: "CA",
+    timezone: "America/New_York",
   });
   expect(updateUser.response.status).toBe(200);
   expect(updateUser.response.headers.get("x-rpc-command")).toBe("UpdateUser");
@@ -366,6 +442,22 @@ test("HTTP RPC happy path covers every user and location command", async () => {
   expect(listUsersBody.users.some((user) => user.id === createdUser.id)).toBe(
     true,
   );
+
+  const onboardMe = await postRpc(userCommands.onboardMe.spec, {});
+  expect(onboardMe.response.status).toBe(200);
+  expect(onboardMe.response.headers.get("x-rpc-command")).toBe("OnboardMe");
+  const onboardBody = onboardMe.body as {
+    accountLinkUrl: string;
+    stripeAccountId: string;
+  };
+  expect(onboardBody.accountLinkUrl).toBeDefined();
+  expect(onboardBody.stripeAccountId).toBe("acct_mock_stripe_123");
+
+  // Activate Stripe status in database
+  await getPrisma().user.update({
+    data: { stripeAccountStatus: "ACTIVATED" },
+    where: { id: createdUser.id },
+  });
 
   const createLocation = await postRpc(
     locationCommands.createLocation.spec,

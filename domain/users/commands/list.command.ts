@@ -1,6 +1,6 @@
 import "server-only";
 
-import { userSchema } from "@/domain/users/schema";
+import { parseUser, userSchema } from "@/domain/users/schema";
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
 import { WireInt, z } from "@/lib/zod";
 
@@ -54,7 +54,7 @@ const listUsers: InferCommand<typeof spec> = async (input, { prisma }) => {
     page: input.page,
     pageSize: input.pageSize,
     totalCount,
-    users,
+    users: users.map(parseUser),
   };
 };
 

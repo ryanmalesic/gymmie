@@ -1,25 +1,30 @@
 import "server-only";
 
+import { parseUser, UserSchema } from "@/domain/users/schema";
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
-import { UserSchema } from "@/lib/generated/zod/modelSchema/UserSchema";
 import { z } from "@/lib/zod";
 
-const requestSchema = UserSchema.pick({ name: true })
+const requestSchema = UserSchema.pick({
+  addressLine1: true,
+  addressLine2: true,
+  city: true,
+  country: true,
+  latitude: true,
+  longitude: true,
+  name: true,
+  phone: true,
+  postalCode: true,
+  state: true,
+  timezone: true,
+})
+  .partial()
   .extend({
     id: z.string().min(1).openapi({ description: "Target user ID" }),
   })
   .strict()
   .openapi("UpdateUserRequest");
 
-const responseSchema = UserSchema.pick({
-  createdAt: true,
-  email: true,
-  id: true,
-  name: true,
-  updatedAt: true,
-})
-  .strict()
-  .openapi("UpdateUserResponse");
+const responseSchema = UserSchema.strict().openapi("UpdateUserResponse");
 
 export const spec = defineCommand({
   load: {
@@ -46,17 +51,13 @@ export const spec = defineCommand({
 });
 
 const updateUser: InferCommand<typeof spec> = async (input, { prisma }) => {
-  return await prisma.user.update({
-    data: { name: input.name },
-    select: {
-      createdAt: true,
-      email: true,
-      id: true,
-      name: true,
-      updatedAt: true,
-    },
-    where: { id: input.id },
-  });
+  const { id, ...data } = input;
+  return parseUser(
+    await prisma.user.update({
+      data,
+      where: { id },
+    }),
+  );
 };
 
 export default updateUser;

@@ -7,14 +7,27 @@ import { type PrismaClient } from "@/lib/generated/prisma/client";
 test("getMyUser command spec and execution", async () => {
   expect(spec.name).toBe("GetMyUser");
 
+  const now = new Date();
   const user = {
-    createdAt: new Date(),
+    addressLine1: "123 Main St",
+    addressLine2: null,
+    city: "San Francisco",
+    country: "US",
+    createdAt: now,
     email: "ada@example.com",
     emailVerified: false,
     id: "usr_1",
     image: null,
+    latitude: 37.7749,
+    longitude: -122.4194,
     name: "Ada",
-    updatedAt: new Date(),
+    phone: "+1 (415) 555-1234",
+    postalCode: "94107",
+    state: "CA",
+    stripeAccountId: null,
+    stripeAccountStatus: null,
+    timezone: "America/New_York",
+    updatedAt: now,
   };
 
   const context = {
@@ -22,31 +35,38 @@ test("getMyUser command spec and execution", async () => {
     prisma: {} as PrismaClient,
     record: user,
     session: {
-      session: { expiresAt: new Date(), id: "s1" },
+      session: { expiresAt: now, id: "s1" },
       user: { email: "ada@example.com", id: "usr_1" },
     },
     version: "2026-08-28",
   } as CommandContext<typeof user>;
 
   const result = await getMyUser({}, context);
-  expect(result).toEqual({
-    createdAt: user.createdAt,
-    email: user.email,
-    id: user.id,
-    name: user.name,
-    updatedAt: user.updatedAt,
-  });
+  expect(result).toEqual(user);
 });
 
 test("getMyUser authorize allows only the session user", () => {
+  const now = new Date();
   const record = {
-    createdAt: new Date(),
+    addressLine1: null,
+    addressLine2: null,
+    city: null,
+    country: "US",
+    createdAt: now,
     email: "ada@example.com",
     emailVerified: false,
     id: "usr_1",
     image: null,
+    latitude: null,
+    longitude: null,
     name: "Ada",
-    updatedAt: new Date(),
+    phone: null,
+    postalCode: null,
+    state: null,
+    stripeAccountId: null,
+    stripeAccountStatus: null,
+    timezone: "America/New_York",
+    updatedAt: now,
   };
 
   expect(

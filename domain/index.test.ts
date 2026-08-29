@@ -4,13 +4,14 @@ import { getAllCommands, getCommand } from "@/domain";
 
 test("aggregates all domain commands from the registries", async () => {
   const commands = await getAllCommands();
-  expect(Object.keys(commands).length).toBe(11);
+  expect(Object.keys(commands).length).toBe(12);
   expect(commands.CreateUser).toBeDefined();
   expect(commands.ReadUser).toBeDefined();
   expect(commands.UpdateUser).toBeDefined();
   expect(commands.DeleteUser).toBeDefined();
   expect(commands.ListUsers).toBeDefined();
   expect(commands.GetMyUser).toBeDefined();
+  expect(commands.OnboardMe).toBeDefined();
   expect(commands.CreateLocation).toBeDefined();
   expect(commands.ReadLocation).toBeDefined();
   expect(commands.UpdateLocation).toBeDefined();

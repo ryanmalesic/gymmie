@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createUserSchema, userSchema } from "@/domain/users/schema";
+import { createUserSchema, parseUser, userSchema } from "@/domain/users/schema";
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
 
 const requestSchema = createUserSchema;
@@ -23,13 +23,15 @@ export const spec = defineCommand({
 });
 
 const createUser: InferCommand<typeof spec> = async (input, { prisma }) => {
-  return await prisma.user.create({
-    data: {
-      email: input.email,
-      emailVerified: false,
-      name: input.name,
-    },
-  });
+  return parseUser(
+    await prisma.user.create({
+      data: {
+        email: input.email,
+        emailVerified: false,
+        name: input.name,
+      },
+    }),
+  );
 };
 
 export default createUser;

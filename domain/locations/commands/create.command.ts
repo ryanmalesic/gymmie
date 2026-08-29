@@ -5,17 +5,24 @@ import {
   locationSchema,
   parseLocation,
 } from "@/domain/locations/schema";
+import { canCreateLocation } from "@/domain/users/gate";
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
 
 const requestSchema = createLocationSchema;
 const responseSchema = locationSchema;
 
 export const spec = defineCommand({
-  authorize: (user) => Boolean(user.id),
+  load: {
+    entity: "User",
+    fetch: (user, _input, prisma) =>
+      prisma.user.findUnique({ where: { id: user.id } }),
+  },
+  authorize: (user, _input, record) =>
+    Boolean(user.id) && canCreateLocation(record),
   name: "CreateLocation",
   spec: {
     description:
-      "Creates a location owned by the current user. Allowed for the owner.",
+      "Creates a location owned by the current user. Allowed for users with a complete profile and activated Stripe account.",
     request: { description: "New location payload", schema: requestSchema },
     response: {
       description: "Created location record",

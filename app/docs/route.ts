@@ -11,12 +11,12 @@ const html = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="SwaggerUI" />
     <title>SwaggerUI</title>
-    <link rel="stylesheet" href="/docs/swagger-ui.css" />
-    <link rel="icon" type="image/png" href="/docs/favicon-32x32.png" sizes="32x32" />
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.32.14/swagger-ui.css" />
+    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@5.32.14/favicon-32x32.png" sizes="32x32" />
   </head>
   <body>
     <div id="swagger-ui"></div>
-    <script src="/docs/swagger-ui-bundle.js" crossorigin></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.32.14/swagger-ui-bundle.js" crossorigin></script>
     <script>
       window.onload = () => {
         window.ui = SwaggerUIBundle({

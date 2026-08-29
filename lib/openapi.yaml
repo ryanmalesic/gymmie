@@ -357,32 +357,112 @@ components:
     GetMyUserResponse:
       type: object
       properties:
-        createdAt:
+        stripeAccountStatus:
           type:
             - string
             - 'null'
-          format: date-time
-        email:
-          type: string
-          description: Email address
-          example: ada@example.com
-          format: email
+          enum:
+            - ACTIVATED
+            - DISABLED
+            - PENDING
+            - RESTRICTED
+            - null
         id:
           type: string
         name:
           type: string
           minLength: 1
           maxLength: 80
+        email:
+          type: string
+          description: Email address
+          example: ada@example.com
+          format: email
+        emailVerified:
+          type: boolean
+        image:
+          type: string
+          description: Secure HTTPS URL
+          example: https://example.com/image.png
+          format: uri
+        phone:
+          type: string
+          description: US phone number
+          example: +1 (415) 555-1234
+        addressLine1:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+          maxLength: 255
+        addressLine2:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+        city:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+          maxLength: 100
+        state:
+          type: string
+          description: USPS state code
+          example: CA
+        postalCode:
+          type: string
+          description: US ZIP code
+          example: '94107'
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          example: US
+        timezone:
+          type: string
+          description: IANA time zone
+          example: America/New_York
+        latitude:
+          type: number
+          description: Latitude in decimal degrees
+          example: 37.7749
+        longitude:
+          type: number
+          description: Longitude in decimal degrees
+          example: -122.4194
+        stripeAccountId:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
         updatedAt:
           type:
             - string
             - 'null'
           format: date-time
       required:
-        - createdAt
-        - email
+        - stripeAccountStatus
         - id
         - name
+        - email
+        - emailVerified
+        - image
+        - phone
+        - addressLine1
+        - addressLine2
+        - city
+        - state
+        - postalCode
+        - country
+        - timezone
+        - latitude
+        - longitude
+        - stripeAccountId
+        - createdAt
         - updatedAt
       additionalProperties: false
     GetMyUserRequest:
@@ -404,6 +484,16 @@ components:
           items:
             type: object
             properties:
+              stripeAccountStatus:
+                type:
+                  - string
+                  - 'null'
+                enum:
+                  - ACTIVATED
+                  - DISABLED
+                  - PENDING
+                  - RESTRICTED
+                  - null
               id:
                 type: string
               name:
@@ -422,6 +512,55 @@ components:
                 description: Secure HTTPS URL
                 example: https://example.com/image.png
                 format: uri
+              phone:
+                type: string
+                description: US phone number
+                example: +1 (415) 555-1234
+              addressLine1:
+                type:
+                  - string
+                  - 'null'
+                minLength: 1
+                maxLength: 255
+              addressLine2:
+                type:
+                  - string
+                  - 'null'
+                maxLength: 255
+              city:
+                type:
+                  - string
+                  - 'null'
+                minLength: 1
+                maxLength: 100
+              state:
+                type: string
+                description: USPS state code
+                example: CA
+              postalCode:
+                type: string
+                description: US ZIP code
+                example: '94107'
+              country:
+                type: string
+                description: ISO 3166-1 alpha-2 country code
+                example: US
+              timezone:
+                type: string
+                description: IANA time zone
+                example: America/New_York
+              latitude:
+                type: number
+                description: Latitude in decimal degrees
+                example: 37.7749
+              longitude:
+                type: number
+                description: Longitude in decimal degrees
+                example: -122.4194
+              stripeAccountId:
+                type:
+                  - string
+                  - 'null'
               createdAt:
                 type:
                   - string
@@ -433,11 +572,23 @@ components:
                   - 'null'
                 format: date-time
             required:
+              - stripeAccountStatus
               - id
               - name
               - email
               - emailVerified
               - image
+              - phone
+              - addressLine1
+              - addressLine2
+              - city
+              - state
+              - postalCode
+              - country
+              - timezone
+              - latitude
+              - longitude
+              - stripeAccountId
               - createdAt
               - updatedAt
       required:
@@ -460,35 +611,144 @@ components:
           maximum: 100
           minimum: 1
       additionalProperties: false
+    OnboardMeResponse:
+      type: object
+      properties:
+        accountLinkUrl:
+          type: string
+          description: Secure HTTPS URL
+          example: https://example.com/image.png
+          format: uri
+        stripeAccountId:
+          type: string
+          description: Stripe Connected Account ID
+      required:
+        - accountLinkUrl
+        - stripeAccountId
+      additionalProperties: false
+    OnboardMeRequest:
+      type: object
+      properties:
+        refreshUrl:
+          type: string
+          description: Secure HTTPS URL
+          example: https://example.com/image.png
+          format: uri
+        returnUrl:
+          type: string
+          description: Secure HTTPS URL
+          example: https://example.com/image.png
+          format: uri
+      additionalProperties: false
     ReadUserResponse:
       type: object
       properties:
-        createdAt:
+        stripeAccountStatus:
           type:
             - string
             - 'null'
-          format: date-time
-        email:
-          type: string
-          description: Email address
-          example: ada@example.com
-          format: email
+          enum:
+            - ACTIVATED
+            - DISABLED
+            - PENDING
+            - RESTRICTED
+            - null
         id:
           type: string
         name:
           type: string
           minLength: 1
           maxLength: 80
+        email:
+          type: string
+          description: Email address
+          example: ada@example.com
+          format: email
+        emailVerified:
+          type: boolean
+        image:
+          type: string
+          description: Secure HTTPS URL
+          example: https://example.com/image.png
+          format: uri
+        phone:
+          type: string
+          description: US phone number
+          example: +1 (415) 555-1234
+        addressLine1:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+          maxLength: 255
+        addressLine2:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+        city:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+          maxLength: 100
+        state:
+          type: string
+          description: USPS state code
+          example: CA
+        postalCode:
+          type: string
+          description: US ZIP code
+          example: '94107'
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          example: US
+        timezone:
+          type: string
+          description: IANA time zone
+          example: America/New_York
+        latitude:
+          type: number
+          description: Latitude in decimal degrees
+          example: 37.7749
+        longitude:
+          type: number
+          description: Longitude in decimal degrees
+          example: -122.4194
+        stripeAccountId:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
         updatedAt:
           type:
             - string
             - 'null'
           format: date-time
       required:
-        - createdAt
-        - email
+        - stripeAccountStatus
         - id
         - name
+        - email
+        - emailVerified
+        - image
+        - phone
+        - addressLine1
+        - addressLine2
+        - city
+        - state
+        - postalCode
+        - country
+        - timezone
+        - latitude
+        - longitude
+        - stripeAccountId
+        - createdAt
         - updatedAt
       additionalProperties: false
     ReadUserRequest:
@@ -504,47 +764,171 @@ components:
     UpdateUserResponse:
       type: object
       properties:
-        createdAt:
+        stripeAccountStatus:
           type:
             - string
             - 'null'
-          format: date-time
-        email:
-          type: string
-          description: Email address
-          example: ada@example.com
-          format: email
+          enum:
+            - ACTIVATED
+            - DISABLED
+            - PENDING
+            - RESTRICTED
+            - null
         id:
           type: string
         name:
           type: string
           minLength: 1
           maxLength: 80
+        email:
+          type: string
+          description: Email address
+          example: ada@example.com
+          format: email
+        emailVerified:
+          type: boolean
+        image:
+          type: string
+          description: Secure HTTPS URL
+          example: https://example.com/image.png
+          format: uri
+        phone:
+          type: string
+          description: US phone number
+          example: +1 (415) 555-1234
+        addressLine1:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+          maxLength: 255
+        addressLine2:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+        city:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+          maxLength: 100
+        state:
+          type: string
+          description: USPS state code
+          example: CA
+        postalCode:
+          type: string
+          description: US ZIP code
+          example: '94107'
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          example: US
+        timezone:
+          type: string
+          description: IANA time zone
+          example: America/New_York
+        latitude:
+          type: number
+          description: Latitude in decimal degrees
+          example: 37.7749
+        longitude:
+          type: number
+          description: Longitude in decimal degrees
+          example: -122.4194
+        stripeAccountId:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
         updatedAt:
           type:
             - string
             - 'null'
           format: date-time
       required:
-        - createdAt
-        - email
+        - stripeAccountStatus
         - id
         - name
+        - email
+        - emailVerified
+        - image
+        - phone
+        - addressLine1
+        - addressLine2
+        - city
+        - state
+        - postalCode
+        - country
+        - timezone
+        - latitude
+        - longitude
+        - stripeAccountId
+        - createdAt
         - updatedAt
       additionalProperties: false
     UpdateUserRequest:
       type: object
       properties:
+        addressLine1:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+          maxLength: 255
+        addressLine2:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+        city:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+          maxLength: 100
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          example: US
+        latitude:
+          type: number
+          description: Latitude in decimal degrees
+          example: 37.7749
+        longitude:
+          type: number
+          description: Longitude in decimal degrees
+          example: -122.4194
         name:
           type: string
           minLength: 1
           maxLength: 80
+        phone:
+          type: string
+          description: US phone number
+          example: +1 (415) 555-1234
+        postalCode:
+          type: string
+          description: US ZIP code
+          example: '94107'
+        state:
+          type: string
+          description: USPS state code
+          example: CA
+        timezone:
+          type: string
+          description: IANA time zone
+          example: America/New_York
         id:
           type: string
           minLength: 1
           description: Target user ID
       required:
-        - name
         - id
       additionalProperties: false
   parameters: {}
@@ -554,7 +938,7 @@ paths:
       deprecated: false
       description: >-
         [Version Lock: 2026-08-28] Creates a location owned by the current user.
-        Allowed for the owner.
+        Allowed for users with a complete profile and activated Stripe account.
       security:
         - bearerAuth: []
       summary: Create a location
@@ -1411,6 +1795,64 @@ paths:
                   description: Secure HTTPS URL
                   example: https://example.com/image.png
                   format: uri
+                phone:
+                  type: string
+                  description: US phone number
+                  example: +1 (415) 555-1234
+                addressLine1:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 255
+                addressLine2:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 255
+                city:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 100
+                state:
+                  type: string
+                  description: USPS state code
+                  example: CA
+                postalCode:
+                  type: string
+                  description: US ZIP code
+                  example: '94107'
+                country:
+                  type: string
+                  description: ISO 3166-1 alpha-2 country code
+                  example: US
+                timezone:
+                  type: string
+                  description: IANA time zone
+                  example: America/New_York
+                latitude:
+                  type: number
+                  description: Latitude in decimal degrees
+                  example: 37.7749
+                longitude:
+                  type: number
+                  description: Longitude in decimal degrees
+                  example: -122.4194
+                stripeAccountId:
+                  type:
+                    - string
+                    - 'null'
+                stripeAccountStatus:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ACTIVATED
+                    - DISABLED
+                    - PENDING
+                    - RESTRICTED
                 createdAt:
                   type:
                     - string
@@ -1442,6 +1884,16 @@ paths:
               schema:
                 type: object
                 properties:
+                  stripeAccountStatus:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - ACTIVATED
+                      - DISABLED
+                      - PENDING
+                      - RESTRICTED
+                      - null
                   id:
                     type: string
                   name:
@@ -1460,6 +1912,55 @@ paths:
                     description: Secure HTTPS URL
                     example: https://example.com/image.png
                     format: uri
+                  phone:
+                    type: string
+                    description: US phone number
+                    example: +1 (415) 555-1234
+                  addressLine1:
+                    type:
+                      - string
+                      - 'null'
+                    minLength: 1
+                    maxLength: 255
+                  addressLine2:
+                    type:
+                      - string
+                      - 'null'
+                    maxLength: 255
+                  city:
+                    type:
+                      - string
+                      - 'null'
+                    minLength: 1
+                    maxLength: 100
+                  state:
+                    type: string
+                    description: USPS state code
+                    example: CA
+                  postalCode:
+                    type: string
+                    description: US ZIP code
+                    example: '94107'
+                  country:
+                    type: string
+                    description: ISO 3166-1 alpha-2 country code
+                    example: US
+                  timezone:
+                    type: string
+                    description: IANA time zone
+                    example: America/New_York
+                  latitude:
+                    type: number
+                    description: Latitude in decimal degrees
+                    example: 37.7749
+                  longitude:
+                    type: number
+                    description: Longitude in decimal degrees
+                    example: -122.4194
+                  stripeAccountId:
+                    type:
+                      - string
+                      - 'null'
                   createdAt:
                     type:
                       - string
@@ -1471,11 +1972,23 @@ paths:
                       - 'null'
                     format: date-time
                 required:
+                  - stripeAccountStatus
                   - id
                   - name
                   - email
                   - emailVerified
                   - image
+                  - phone
+                  - addressLine1
+                  - addressLine2
+                  - city
+                  - state
+                  - postalCode
+                  - country
+                  - timezone
+                  - latitude
+                  - longitude
+                  - stripeAccountId
                   - createdAt
                   - updatedAt
         '400':
@@ -1681,6 +2194,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListUsersResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/OnboardMe:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-27] Initiates Stripe Connect onboarding for an
+        authenticated user with a complete profile. Returns an Account Link URL.
+      security:
+        - bearerAuth: []
+      summary: Initiate Stripe Connect onboarding
+      tags:
+        - Users
+        - Stripe
+      requestBody:
+        description: Optional custom refresh and return URLs
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardMeRequest'
+      responses:
+        '200':
+          description: Generated Stripe account link and account ID
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardMeResponse'
         '400':
           description: Bad Request
           content:

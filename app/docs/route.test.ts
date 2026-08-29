@@ -22,6 +22,6 @@ test("GET /docs requires a session and serves Swagger UI", async () => {
   const body = await res.text();
   expect(body).toContain("SwaggerUIBundle");
   expect(body).toContain('url: "/api/openapi"');
-  expect(body).toContain("/docs/swagger-ui-bundle.js");
-  expect(body).toContain("/docs/swagger-ui.css");
+  expect(body).toContain("swagger-ui-bundle.js");
+  expect(body).toContain("swagger-ui.css");
 });

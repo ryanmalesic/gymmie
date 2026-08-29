@@ -8,14 +8,32 @@ test("createUser command spec and execution", async () => {
   expect(spec.name).toBe("CreateUser");
   expect(spec.version).toBe("2026-08-27");
 
+  const now = new Date();
+  const mockUser = {
+    addressLine1: null,
+    addressLine2: null,
+    city: null,
+    country: "US",
+    createdAt: now,
+    email: "ada@example.com",
+    emailVerified: false,
+    id: "usr_1",
+    image: null,
+    latitude: null,
+    longitude: null,
+    name: "Ada",
+    phone: null,
+    postalCode: null,
+    state: null,
+    stripeAccountId: null,
+    stripeAccountStatus: null,
+    timezone: "America/New_York",
+    updatedAt: now,
+  };
+
   const mockPrisma = {
     user: {
-      create: vi.fn().mockResolvedValue({
-        createdAt: new Date(),
-        email: "ada@example.com",
-        id: "usr_1",
-        name: "Ada",
-      }),
+      create: vi.fn().mockResolvedValue(mockUser),
     },
   };
 
@@ -23,10 +41,10 @@ test("createUser command spec and execution", async () => {
     commandName: "CreateUser",
     prisma: mockPrisma as unknown as PrismaClient,
     session: {
-      session: { expiresAt: new Date(), id: "s1" },
+      session: { expiresAt: now, id: "s1" },
       user: { email: "ada@example.com", id: "usr_1" },
     },
-    version: "2026-08-27",
+    version: "2026-08-28",
   };
 
   const result = await createUser(

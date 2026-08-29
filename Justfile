@@ -70,3 +70,11 @@ openapi:
 openapi-breaking:
     pnpm openapi:breaking
 
+# Listen and forward Stripe webhooks to local dev server
+stripe-listen:
+    stripe listen --forward-to localhost:3000/api/webhooks/stripe
+
+# Trigger a Stripe webhook event for local testing
+stripe-trigger event="account.updated":
+    stripe trigger {{event}}
+

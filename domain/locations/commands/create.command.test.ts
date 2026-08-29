@@ -29,6 +29,28 @@ const created = {
   website: "https://ironworks.example",
 };
 
+const authorizedUser = {
+  addressLine1: "100 Pine St",
+  addressLine2: null,
+  city: "San Francisco",
+  country: "US",
+  createdAt: now,
+  email: "ada@example.com",
+  emailVerified: true,
+  id: "usr_1",
+  image: null,
+  latitude: 37.7749,
+  longitude: -122.4194,
+  name: "Ada",
+  phone: "+1 (415) 555-9876",
+  postalCode: "94111",
+  state: "CA",
+  stripeAccountId: "acct_123",
+  stripeAccountStatus: "ACTIVATED" as const,
+  timezone: "America/New_York",
+  updatedAt: now,
+};
+
 test("createLocation command spec and execution", async () => {
   expect(spec.name).toBe("CreateLocation");
   expect(spec.version).toBe("2026-08-28");
@@ -39,9 +61,10 @@ test("createLocation command spec and execution", async () => {
     },
   };
 
-  const context: CommandContext = {
+  const context: CommandContext<typeof authorizedUser> = {
     commandName: "CreateLocation",
     prisma: mockPrisma as unknown as PrismaClient,
+    record: authorizedUser,
     session: {
       session: { expiresAt: now, id: "s1" },
       user: { email: "ada@example.com", id: "usr_1" },
@@ -75,7 +98,7 @@ test("createLocation command spec and execution", async () => {
   });
 });
 
-test("createLocation authorize requires a session user id", () => {
+test("createLocation authorize requires a complete profile and activated stripe account", () => {
   const input = {
     addressLine1: "123 Main St",
     city: "San Francisco",
@@ -90,19 +113,52 @@ test("createLocation authorize requires a session user id", () => {
     website: "https://ironworks.example",
   };
 
+  // Fully authorized user
   expect(
     spec.authorize(
       { email: "ada@example.com", id: "usr_1" },
       input,
-      undefined,
+      authorizedUser,
       {} as PrismaClient,
     ),
   ).toBe(true);
+
+  // Incomplete profile (missing phone)
+  expect(
+    spec.authorize(
+      { email: "ada@example.com", id: "usr_1" },
+      input,
+      { ...authorizedUser, phone: null },
+      {} as PrismaClient,
+    ),
+  ).toBe(false);
+
+  // Missing stripe account
+  expect(
+    spec.authorize(
+      { email: "ada@example.com", id: "usr_1" },
+      input,
+      { ...authorizedUser, stripeAccountId: null },
+      {} as PrismaClient,
+    ),
+  ).toBe(false);
+
+  // Pending stripe status
+  expect(
+    spec.authorize(
+      { email: "ada@example.com", id: "usr_1" },
+      input,
+      { ...authorizedUser, stripeAccountStatus: "PENDING" },
+      {} as PrismaClient,
+    ),
+  ).toBe(false);
+
+  // Unauthenticated session user id
   expect(
     spec.authorize(
       { email: "ada@example.com", id: "" },
       input,
-      undefined,
+      authorizedUser,
       {} as PrismaClient,
     ),
   ).toBe(false);

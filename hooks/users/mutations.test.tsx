@@ -27,12 +27,24 @@ const listedAt = new Date("2026-08-01T00:00:00.000Z");
 
 function listedUser(email: string, id: string, name: string): User {
   return {
+    addressLine1: null,
+    addressLine2: null,
+    city: null,
+    country: "US",
     createdAt: listedAt,
     email,
     emailVerified: false,
     id,
     image: null,
+    latitude: null,
+    longitude: null,
     name,
+    phone: null,
+    postalCode: null,
+    state: null,
+    stripeAccountId: null,
+    stripeAccountStatus: null,
+    timezone: "America/New_York",
     updatedAt: listedAt,
   };
 }

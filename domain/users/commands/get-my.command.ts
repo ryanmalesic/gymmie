@@ -1,20 +1,12 @@
 import "server-only";
 
+import { parseUser, userSchema } from "@/domain/users/schema";
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
-import { UserSchema } from "@/lib/generated/zod/modelSchema/UserSchema";
 import { z } from "@/lib/zod";
 
 const requestSchema = z.object({}).strict().openapi("GetMyUserRequest");
 
-const responseSchema = UserSchema.pick({
-  createdAt: true,
-  email: true,
-  id: true,
-  name: true,
-  updatedAt: true,
-})
-  .strict()
-  .openapi("GetMyUserResponse");
+const responseSchema = userSchema.strict().openapi("GetMyUserResponse");
 
 export const spec = defineCommand({
   load: {
@@ -39,13 +31,7 @@ export const spec = defineCommand({
 });
 
 const getMyUser: InferCommand<typeof spec> = async (_input, { record }) => {
-  return {
-    createdAt: record.createdAt,
-    email: record.email,
-    id: record.id,
-    name: record.name,
-    updatedAt: record.updatedAt,
-  };
+  return parseUser(record);
 };
 
 export default getMyUser;

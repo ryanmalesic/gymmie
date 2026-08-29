@@ -24,21 +24,44 @@ datasource db {
 }
 
 model User {
-  id             String     @id @default(dbgenerated("id()"))
+  id                  String               @id @default(dbgenerated("id()"))
   /// @zod.string.trim().min(1, { message: "Name is required" }).max(80, { message: "Name is too long" })
-  name           String
+  name                String
   /// @zod.import(["import { Email } from '@/lib/zod'"]).custom.use(Email)
-  email          String
-  emailVerified  Boolean    @default(false)
+  email               String
+  emailVerified       Boolean              @default(false)
   /// @zod.import(["import { HttpsUrl } from '@/lib/zod'"]).custom.use(HttpsUrl)
-  image          String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  sessions       Session[]
-  accounts       Account[]
-  ownedLocations Location[]
+  image               String?
+  /// @zod.import(["import { UsPhone } from '@/lib/zod'"]).custom.use(UsPhone)
+  phone               String?
+  /// @zod.string.trim().min(1, { message: "Address is required" }).max(255)
+  addressLine1        String?
+  /// @zod.string.trim().max(255)
+  addressLine2        String?
+  /// @zod.string.trim().min(1, { message: "City is required" }).max(100)
+  city                String?
+  /// @zod.import(["import { UsState } from '@/lib/zod'"]).custom.use(UsState)
+  state               String?
+  /// @zod.import(["import { UsPostalCode } from '@/lib/zod'"]).custom.use(UsPostalCode)
+  postalCode          String?
+  /// @zod.import(["import { IsoCountry } from '@/lib/zod'"]).custom.use(IsoCountry)
+  country             String?              @default("US")
+  /// @zod.import(["import { IanaTimezone } from '@/lib/zod'"]).custom.use(IanaTimezone)
+  timezone            String?              @default("America/New_York")
+  /// @zod.import(["import { Latitude } from '@/lib/zod'"]).custom.use(Latitude)
+  latitude            Float?
+  /// @zod.import(["import { Longitude } from '@/lib/zod'"]).custom.use(Longitude)
+  longitude           Float?
+  stripeAccountId     String?
+  stripeAccountStatus StripeAccountStatus?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  sessions            Session[]
+  accounts            Account[]
+  ownedLocations      Location[]
 
   @@unique([email])
+  @@index([stripeAccountId])
   @@map("user")
 }
 
@@ -88,6 +111,13 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@map("verification")
+}
+
+enum StripeAccountStatus {
+  ACTIVATED
+  DISABLED
+  PENDING
+  RESTRICTED
 }
 
 enum LocationStatus {

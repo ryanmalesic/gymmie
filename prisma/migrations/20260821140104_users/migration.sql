@@ -1,3 +1,11 @@
+-- CreateEnum
+CREATE TYPE "StripeAccountStatus" AS ENUM (
+    'ACTIVATED',
+    'DISABLED',
+    'PENDING',
+    'RESTRICTED'
+);
+
 -- CreateTable: user
 CREATE TABLE "user" (
     "id" TEXT NOT NULL,
@@ -5,12 +13,26 @@ CREATE TABLE "user" (
     "email" TEXT NOT NULL,
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "image" TEXT,
+    "phone" TEXT,
+    "addressLine1" TEXT,
+    "addressLine2" TEXT,
+    "city" TEXT,
+    "state" TEXT,
+    "postalCode" TEXT,
+    "country" TEXT DEFAULT 'US',
+    "timezone" TEXT DEFAULT 'America/New_York',
+    "latitude" DOUBLE PRECISION,
+    "longitude" DOUBLE PRECISION,
+    "stripeAccountId" TEXT,
+    "stripeAccountStatus" "StripeAccountStatus",
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "user_email_uidx" UNIQUE ("email")
 );
+
+CREATE INDEX "user_stripeAccountId_idx" ON "user"("stripeAccountId");
 
 CREATE TRIGGER assign_id
 BEFORE INSERT ON "user"
