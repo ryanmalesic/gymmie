@@ -1,9 +1,27 @@
 import "server-only";
 
+import { getStripeAccountLinkUrls } from "@/domain/users/commands/stripe-account-link";
 import { isProfileComplete } from "@/domain/users/gate";
 import { defineCommand, type InferCommand } from "@/lib/commands/base";
 import { getStripe } from "@/lib/stripe";
 import { HttpsUrl, z } from "@/lib/zod";
+
+// Stripe 22.6.0 declares this ACH capability as ach_debit_payments, but
+// the Accounts v2 product contract requires us_bank_account_ach_payments.
+type RequestedAccountConfiguration = {
+  merchant: {
+    capabilities: {
+      card_payments: { requested: true };
+      stripe_balance: { payouts: { requested: true } };
+      us_bank_account_ach_payments: { requested: true };
+    };
+  };
+  recipient: {
+    capabilities: {
+      stripe_balance: { stripe_transfers: { requested: true } };
+    };
+  };
+};
 
 const requestSchema = z
   .object({
@@ -57,18 +75,39 @@ const onboardMe: InferCommand<typeof spec> = async (
   let stripeAccountId = record.stripeAccountId;
 
   if (!stripeAccountId) {
-    const account = await stripe.accounts.create(
+    const account = await stripe.v2.core.accounts.create(
       {
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
+        configuration: {
+          merchant: {
+            capabilities: {
+              card_payments: { requested: true },
+              stripe_balance: { payouts: { requested: true } },
+              us_bank_account_ach_payments: { requested: true },
+            },
+          },
+          recipient: {
+            capabilities: {
+              stripe_balance: {
+                stripe_transfers: { requested: true },
+              },
+            },
+          },
+        } as unknown as RequestedAccountConfiguration,
+        contact_email: record.email,
+        dashboard: "express",
+        defaults: {
+          responsibilities: {
+            fees_collector: "application",
+            losses_collector: "application",
+          },
         },
-        country: record.country ?? "US",
-        email: record.email,
+        identity: {
+          country: (record.country ?? "US").toLowerCase(),
+          entity_type: "individual",
+        },
         metadata: {
           userId: record.id,
         },
-        type: "express",
       },
       {
         idempotencyKey: record.id,
@@ -86,16 +125,18 @@ const onboardMe: InferCommand<typeof spec> = async (
     });
   }
 
-  const defaultBaseUrl =
-    process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ?? "https://localhost:3000";
-  const defaultReturnUrl = `${defaultBaseUrl}/onboarding/stripe/return`;
-  const defaultRefreshUrl = `${defaultBaseUrl}/onboarding/stripe/refresh`;
+  const { refreshUrl, returnUrl } = getStripeAccountLinkUrls(input);
 
-  const accountLink = await stripe.accountLinks.create({
+  const accountLink = await stripe.v2.core.accountLinks.create({
     account: stripeAccountId,
-    refresh_url: input.refreshUrl ?? defaultRefreshUrl,
-    return_url: input.returnUrl ?? defaultReturnUrl,
-    type: "account_onboarding",
+    use_case: {
+      account_onboarding: {
+        configurations: ["merchant", "recipient"],
+        refresh_url: refreshUrl,
+        return_url: returnUrl,
+      },
+      type: "account_onboarding",
+    },
   });
 
   return {

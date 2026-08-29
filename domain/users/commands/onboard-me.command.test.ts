@@ -5,16 +5,20 @@ import { type CommandContext } from "@/lib/commands/types";
 import { type PrismaClient } from "@/lib/generated/prisma/client";
 import { type User } from "@/lib/generated/zod/modelSchema/UserSchema";
 
-const mockStripeAccountsCreate = vi.fn();
-const mockStripeAccountLinksCreate = vi.fn();
+const mockStripeV2CoreAccountsCreate = vi.fn();
+const mockStripeV2CoreAccountLinksCreate = vi.fn();
 
 vi.mock("@/lib/stripe", () => ({
   getStripe: () => ({
-    accountLinks: {
-      create: mockStripeAccountLinksCreate,
-    },
-    accounts: {
-      create: mockStripeAccountsCreate,
+    v2: {
+      core: {
+        accountLinks: {
+          create: mockStripeV2CoreAccountLinksCreate,
+        },
+        accounts: {
+          create: mockStripeV2CoreAccountsCreate,
+        },
+      },
     },
   }),
 }));
@@ -72,8 +76,8 @@ describe("OnboardMe command", () => {
   });
 
   test("creates new Stripe account and returns account link if user has no stripeAccountId", async () => {
-    mockStripeAccountsCreate.mockResolvedValue({ id: "acct_stripe_new" });
-    mockStripeAccountLinksCreate.mockResolvedValue({
+    mockStripeV2CoreAccountsCreate.mockResolvedValue({ id: "acct_stripe_new" });
+    mockStripeV2CoreAccountLinksCreate.mockResolvedValue({
       url: "https://connect.stripe.com/setup/s/123",
     });
 
@@ -104,18 +108,39 @@ describe("OnboardMe command", () => {
       stripeAccountId: "acct_stripe_new",
     });
 
-    expect(mockStripeAccountsCreate).toHaveBeenCalledWith(
+    expect(mockStripeV2CoreAccountsCreate).toHaveBeenCalledWith(
       {
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
+        configuration: {
+          merchant: {
+            capabilities: {
+              card_payments: { requested: true },
+              stripe_balance: { payouts: { requested: true } },
+              us_bank_account_ach_payments: { requested: true },
+            },
+          },
+          recipient: {
+            capabilities: {
+              stripe_balance: {
+                stripe_transfers: { requested: true },
+              },
+            },
+          },
         },
-        country: "US",
-        email: "ada@example.com",
+        contact_email: "ada@example.com",
+        dashboard: "express",
+        defaults: {
+          responsibilities: {
+            fees_collector: "application",
+            losses_collector: "application",
+          },
+        },
+        identity: {
+          country: "us",
+          entity_type: "individual",
+        },
         metadata: {
           userId: "usr_123",
         },
-        type: "express",
       },
       {
         idempotencyKey: "usr_123",
@@ -130,16 +155,21 @@ describe("OnboardMe command", () => {
       where: { id: "usr_123" },
     });
 
-    expect(mockStripeAccountLinksCreate).toHaveBeenCalledWith({
+    expect(mockStripeV2CoreAccountLinksCreate).toHaveBeenCalledWith({
       account: "acct_stripe_new",
-      refresh_url: "https://example.com/onboarding/stripe/refresh",
-      return_url: "https://example.com/onboarding/stripe/return",
-      type: "account_onboarding",
+      use_case: {
+        account_onboarding: {
+          configurations: ["merchant", "recipient"],
+          refresh_url: "https://example.com/onboarding/stripe/refresh",
+          return_url: "https://example.com/onboarding/stripe/return",
+        },
+        type: "account_onboarding",
+      },
     });
   });
 
   test("reuses existing stripeAccountId if user already has one", async () => {
-    mockStripeAccountLinksCreate.mockResolvedValue({
+    mockStripeV2CoreAccountLinksCreate.mockResolvedValue({
       url: "https://connect.stripe.com/setup/s/456",
     });
 
@@ -179,13 +209,18 @@ describe("OnboardMe command", () => {
       stripeAccountId: "acct_existing_456",
     });
 
-    expect(mockStripeAccountsCreate).not.toHaveBeenCalled();
+    expect(mockStripeV2CoreAccountsCreate).not.toHaveBeenCalled();
     expect(mockPrisma.user.update).not.toHaveBeenCalled();
-    expect(mockStripeAccountLinksCreate).toHaveBeenCalledWith({
+    expect(mockStripeV2CoreAccountLinksCreate).toHaveBeenCalledWith({
       account: "acct_existing_456",
-      refresh_url: "https://custom.example.com/refresh",
-      return_url: "https://custom.example.com/return",
-      type: "account_onboarding",
+      use_case: {
+        account_onboarding: {
+          configurations: ["merchant", "recipient"],
+          refresh_url: "https://custom.example.com/refresh",
+          return_url: "https://custom.example.com/return",
+        },
+        type: "account_onboarding",
+      },
     });
   });
 });

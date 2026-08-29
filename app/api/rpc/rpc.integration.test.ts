@@ -9,8 +9,10 @@ import {
   updateLocationAction,
 } from "@/app/actions/locations";
 import {
+  createStripeAccountLinkAction,
   createUserAction,
   deleteUserAction,
+  getMyStripeAccountStateAction,
   getMyUserAction,
   listUsersAction,
   onboardMeAction,
@@ -36,6 +38,10 @@ const testUserSession: AuthSession = {
   },
 };
 
+const mockStripeV2CoreAccountLinksCreate = vi.fn();
+const mockStripeV2CoreAccountsCreate = vi.fn();
+const mockStripeV2CoreAccountsRetrieve = vi.fn();
+
 vi.mock("@/lib/auth", () => ({
   auth: {
     api: {
@@ -46,15 +52,16 @@ vi.mock("@/lib/auth", () => ({
 
 vi.mock("@/lib/stripe", () => ({
   getStripe: () => ({
-    accountLinks: {
-      create: vi.fn().mockResolvedValue({
-        url: "https://connect.stripe.com/setup/s/mock_link",
-      }),
-    },
-    accounts: {
-      create: vi.fn().mockResolvedValue({
-        id: "acct_mock_stripe_123",
-      }),
+    v2: {
+      core: {
+        accountLinks: {
+          create: mockStripeV2CoreAccountLinksCreate,
+        },
+        accounts: {
+          create: mockStripeV2CoreAccountsCreate,
+          retrieve: mockStripeV2CoreAccountsRetrieve,
+        },
+      },
     },
     webhooks: {
       constructEventAsync: vi.fn(),
@@ -115,6 +122,47 @@ function setSessionUser(user: { email: string; id: string; name: string }) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  process.env.BETTER_AUTH_URL = "https://localhost:3000";
+  mockStripeV2CoreAccountLinksCreate.mockResolvedValue({
+    url: "https://connect.stripe.com/setup/s/mock_link",
+  });
+  mockStripeV2CoreAccountsCreate.mockResolvedValue({
+    id: "acct_mock_stripe_123",
+  });
+  mockStripeV2CoreAccountsRetrieve.mockResolvedValue({
+    configuration: {
+      merchant: {
+        capabilities: {
+          card_payments: { status: "active", status_details: [] },
+          stripe_balance: {
+            payouts: { status: "active", status_details: [] },
+          },
+          us_bank_account_ach_payments: {
+            status: "active",
+            status_details: [],
+          },
+        },
+      },
+      recipient: {
+        capabilities: {
+          stripe_balance: {
+            stripe_transfers: { status: "active", status_details: [] },
+          },
+        },
+      },
+    },
+    id: "acct_mock_stripe_123",
+    requirements: {
+      entries: [
+        {
+          awaiting_action_from: "user",
+          description: "individual.future_requirement",
+          minimum_deadline: { status: "eventually_due" },
+        },
+      ],
+      summary: {},
+    },
+  });
   vi.mocked(auth.api.getSession).mockResolvedValue(
     testUserSession as unknown as Awaited<
       ReturnType<typeof auth.api.getSession>
@@ -312,6 +360,48 @@ test("full location command CRUD lifecycle via server actions", async () => {
   const onboardResult = await onboardMeAction({});
   expect(onboardResult.success).toBe(true);
 
+  const accountStateResult = await getMyStripeAccountStateAction({});
+  expect(accountStateResult.success).toBe(true);
+  if (!accountStateResult.success) return;
+  expect(accountStateResult.data.stripeAccountId).toBe("acct_mock_stripe_123");
+  expect(accountStateResult.data.eventuallyDue).toEqual([
+    "individual.future_requirement",
+  ]);
+  expect(accountStateResult.data.merchantCapabilities.card_payments).toEqual({
+    status: "active",
+    statusDetails: [],
+  });
+
+  const remediationLinkResult = await createStripeAccountLinkAction({});
+  expect(remediationLinkResult.success).toBe(true);
+  if (!remediationLinkResult.success) return;
+  expect(remediationLinkResult.data).toEqual({
+    accountLinkUrl: "https://connect.stripe.com/setup/s/mock_link",
+    stripeAccountId: "acct_mock_stripe_123",
+  });
+  expect(mockStripeV2CoreAccountsRetrieve).toHaveBeenCalledWith(
+    "acct_mock_stripe_123",
+    {
+      include: [
+        "configuration.merchant",
+        "configuration.recipient",
+        "requirements",
+      ],
+    },
+  );
+  expect(mockStripeV2CoreAccountsCreate).toHaveBeenCalledTimes(1);
+  expect(mockStripeV2CoreAccountLinksCreate).toHaveBeenLastCalledWith({
+    account: "acct_mock_stripe_123",
+    use_case: {
+      account_onboarding: {
+        configurations: ["merchant", "recipient"],
+        refresh_url: "https://localhost:3000/onboarding/stripe/refresh",
+        return_url: "https://localhost:3000/onboarding/stripe/return",
+      },
+      type: "account_onboarding",
+    },
+  });
+
   // Location creation still fails because stripe status is PENDING
   const pendingCreate = await createLocationAction(gymPayload());
   expect(pendingCreate.success).toBe(false);
@@ -453,6 +543,51 @@ test("HTTP RPC happy path covers every user and location command", async () => {
   expect(onboardBody.accountLinkUrl).toBeDefined();
   expect(onboardBody.stripeAccountId).toBe("acct_mock_stripe_123");
 
+  const accountState = await postRpc(
+    userCommands.getMyStripeAccountState.spec,
+    {},
+  );
+  expect(accountState.response.status).toBe(200);
+  const accountStateBody = accountState.body as {
+    eventuallyDue: string[];
+    merchantCapabilities: Record<
+      string,
+      { status: string; statusDetails: unknown[] }
+    >;
+    recipientCapabilities: Record<
+      string,
+      { status: string; statusDetails: unknown[] }
+    >;
+    stripeAccountId: string;
+    stripeAccountStatus: string;
+  };
+  expect(accountStateBody.stripeAccountId).toBe("acct_mock_stripe_123");
+  expect(accountStateBody.eventuallyDue).toEqual([
+    "individual.future_requirement",
+  ]);
+  expect(accountStateBody.stripeAccountStatus).toBe("PENDING");
+  expect(accountStateBody.merchantCapabilities).toEqual({
+    card_payments: { status: "active", statusDetails: [] },
+    "stripe_balance.payouts": { status: "active", statusDetails: [] },
+    us_bank_account_ach_payments: { status: "active", statusDetails: [] },
+  });
+  expect(accountStateBody.recipientCapabilities).toEqual({
+    "stripe_balance.stripe_transfers": {
+      status: "active",
+      statusDetails: [],
+    },
+  });
+  expect(accountState.body).not.toHaveProperty("related_object");
+
+  const remediationLink = await postRpc(
+    userCommands.createStripeAccountLink.spec,
+    {},
+  );
+  expect(remediationLink.response.status).toBe(200);
+  expect(
+    (remediationLink.body as { accountLinkUrl: string }).accountLinkUrl,
+  ).toMatch(/^https:\/\//);
+
   // Activate Stripe status in database
   await getPrisma().user.update({
     data: { stripeAccountStatus: "ACTIVATED" },
@@ -561,4 +696,55 @@ test("HTTP RPC happy path covers every user and location command", async () => {
   });
   expect(missingUser.response.status).toBe(404);
   expect((missingUser.body as { code: string }).code).toBe("NOT_FOUND");
+});
+
+test("returns PENDING through RPC when a required capability is missing", async () => {
+  const email = `rpc-missing-capability-${crypto.randomUUID()}@example.com`;
+  const createUser = await createUserAction({
+    email,
+    name: "RPC Missing Capability",
+  });
+  expect(createUser.success).toBe(true);
+  if (!createUser.success) return;
+
+  const createdUser = createUser.data;
+  setSessionUser(createdUser);
+  await getPrisma().user.update({
+    data: { stripeAccountId: "acct_rpc_missing_capability" },
+    where: { id: createdUser.id },
+  });
+  mockStripeV2CoreAccountsRetrieve.mockResolvedValue({
+    configuration: {
+      merchant: {
+        capabilities: {
+          card_payments: { status: "active", status_details: [] },
+          stripe_balance: {
+            payouts: { status: "active", status_details: [] },
+          },
+        },
+      },
+      recipient: {
+        capabilities: {
+          stripe_balance: {
+            stripe_transfers: { status: "active", status_details: [] },
+          },
+        },
+      },
+    },
+    id: "acct_rpc_missing_capability",
+    requirements: { entries: [] },
+  });
+
+  const accountState = await postRpc(
+    userCommands.getMyStripeAccountState.spec,
+    {},
+  );
+
+  expect(accountState.response.status).toBe(200);
+  expect(
+    (accountState.body as { stripeAccountStatus: string }).stripeAccountStatus,
+  ).toBe("PENDING");
+  expect(accountState.body).not.toHaveProperty(
+    "merchantCapabilities.us_bank_account_ach_payments",
+  );
 });

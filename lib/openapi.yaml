@@ -332,6 +332,24 @@ components:
       required:
         - id
       additionalProperties: false
+    CreateStripeAccountLinkResponse:
+      type: object
+      properties:
+        accountLinkUrl:
+          type: string
+          description: Secure HTTPS URL
+          example: https://example.com/image.png
+          format: uri
+        stripeAccountId:
+          type: string
+      required:
+        - accountLinkUrl
+        - stripeAccountId
+      additionalProperties: false
+    CreateStripeAccountLinkRequest:
+      type: object
+      properties: {}
+      additionalProperties: false
     DeleteUserResponse:
       type: object
       properties:
@@ -466,6 +484,132 @@ components:
         - updatedAt
       additionalProperties: false
     GetMyUserRequest:
+      type: object
+      properties: {}
+      additionalProperties: false
+    GetMyStripeAccountStateResponse:
+      type: object
+      properties:
+        actionableRemediation:
+          type: boolean
+        currentlyDue:
+          type: array
+          items:
+            type: string
+        eventuallyDue:
+          type: array
+          items:
+            type: string
+        merchantCapabilities:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+              statusDetails:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                    resolution:
+                      type: string
+                  required:
+                    - code
+                    - resolution
+                  additionalProperties: false
+            required:
+              - status
+              - statusDetails
+            additionalProperties: false
+        pastDue:
+          type: array
+          items:
+            type: string
+        pendingVerification:
+          type: array
+          items:
+            type: string
+        recipientCapabilities:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+              statusDetails:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                    resolution:
+                      type: string
+                  required:
+                    - code
+                    - resolution
+                  additionalProperties: false
+            required:
+              - status
+              - statusDetails
+            additionalProperties: false
+        requirements:
+          type: object
+          properties:
+            currentDeadline:
+              type:
+                - string
+                - 'null'
+            errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  description:
+                    type: string
+                  requirement:
+                    type: string
+                required:
+                  - code
+                  - description
+                  - requirement
+                additionalProperties: false
+          required:
+            - currentDeadline
+            - errors
+          additionalProperties: false
+        stripeAccountId:
+          type:
+            - string
+            - 'null'
+        stripeAccountStatus:
+          type:
+            - string
+            - 'null'
+          enum:
+            - ACTIVATED
+            - DISABLED
+            - PENDING
+            - RESTRICTED
+            - null
+      required:
+        - actionableRemediation
+        - currentlyDue
+        - eventuallyDue
+        - merchantCapabilities
+        - pastDue
+        - pendingVerification
+        - recipientCapabilities
+        - requirements
+        - stripeAccountId
+        - stripeAccountStatus
+      additionalProperties: false
+    GetMyStripeAccountStateRequest:
       type: object
       properties: {}
       additionalProperties: false
@@ -1759,6 +1903,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/CreateStripeAccountLink:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-27] Creates a fresh Stripe Account Link for an
+        authenticated user's existing account.
+      security:
+        - bearerAuth: []
+      summary: Create a Stripe Account Link
+      tags:
+        - Users
+        - Stripe
+      requestBody:
+        description: Application-controlled Stripe onboarding callbacks
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStripeAccountLinkRequest'
+      responses:
+        '200':
+          description: Fresh Stripe Account Link and account ID
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateStripeAccountLinkResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/rpc/2026-08-27/CreateUser:
     post:
       deprecated: false
@@ -2127,6 +2341,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetMyUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated - Active session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Referred record does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/rpc/2026-08-27/GetMyStripeAccountState:
+    post:
+      deprecated: false
+      description: >-
+        [Version Lock: 2026-08-27] Fetches the current authenticated user's
+        normalized Stripe Account state.
+      security:
+        - bearerAuth: []
+      summary: Fetch Stripe Account state
+      tags:
+        - Users
+        - Stripe
+      requestBody:
+        description: Empty payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMyStripeAccountStateRequest'
+      responses:
+        '200':
+          description: Frontend-safe Stripe Account state
+          headers:
+            x-rpc-command:
+              description: Executed RPC command name
+              schema:
+                type: string
+            x-rpc-version:
+              description: Version lock timestamp
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMyStripeAccountStateResponse'
         '400':
           description: Bad Request
           content:
